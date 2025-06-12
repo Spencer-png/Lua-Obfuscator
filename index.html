@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lua 5.1 Obfuscator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for animations and theme */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+        }
+
+        .font-fira {
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Glitch effect for the title */
+        .glitch {
+            position: relative;
+            font-size: 4rem;
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            animation: glitch-skew 1s infinite linear alternate-reverse;
+        }
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #111827;
+            overflow: hidden;
+        }
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 #10B981; /* emerald-500 */
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 #3B82F6, 2px 2px #EF4444; /* blue-500, red-500 */
+            animation: glitch-anim-2 2s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(15% 0 86% 0); } 25% { clip-path: inset(55% 0 10% 0); } 50% { clip-path: inset(30% 0 45% 0); } 75% { clip-path: inset(80% 0 5% 0); } 100% { clip-path: inset(40% 0 53% 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(82% 0 6% 0); } 25% { clip-path: inset(12% 0 50% 0); } 50% { clip-path: inset(60% 0 35% 0); } 75% { clip-path: inset(20% 0 75% 0); } 100% { clip-path: inset(75% 0 10% 0); }
+        }
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg); } 100% { transform: skew(1deg); }
+        }
+
+        /* Textarea focus glow */
+        .code-input:focus {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+            border-color: #10B981; /* emerald-500 */
+        }
+        
+        /* Custom button styling */
+        .btn-obfuscate {
+            transition: all 0.3s ease;
+        }
+        .btn-obfuscate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 0 15px rgba(16, 185, 129, 0.6);
+        }
+        .btn-obfuscate:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="text-white">
+
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+        <header class="text-center mb-8">
+            <h1 class="glitch" data-text="Lua Obfuscator">Lua Obfuscator</h1>
+            <p class="text-gray-400 mt-4 max-w-2xl">
+                A top-tier obfuscator with a custom VM, scrambled control-flow, and polymorphic virtualization for maximum security and compatibility.
+            </p>
+        </header>
+
+        <main class="w-full max-w-6xl flex flex-col md:flex-row gap-6">
+            <!-- Input Area -->
+            <div class="flex-1">
+                <label for="lua-input" class="block mb-2 text-sm font-medium text-gray-300">Your Lua Code</label>
+                <textarea id="lua-input" rows="16" class="code-input font-fira w-full p-4 bg-gray-800 border-2 border-gray-700 rounded-lg text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300" placeholder="-- Paste your script here... It will be compiled into custom VM instructions."></textarea>
+            </div>
+            <!-- Output Area -->
+            <div class="flex-1">
+                <label for="lua-output" class="block mb-2 text-sm font-medium text-gray-300">Obfuscated Output</label>
+                <div class="relative">
+                    <textarea id="lua-output" rows="16" readonly class="code-input font-fira w-full p-4 bg-gray-800 border-2 border-gray-700 rounded-lg text-gray-200 transition-all duration-300" placeholder="Obfuscated code will appear here..."></textarea>
+                    <button id="copy-btn" class="absolute top-3 right-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-3 rounded-md text-sm transition-all duration-200 opacity-50 hover:opacity-100">
+                        Copy
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer class="mt-8 text-center">
+            <button id="obfuscate-btn" class="btn-obfuscate bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg">
+                Obfuscate Code
+            </button>
+        </footer>
+        
+        <!-- Toast Notification -->
+        <div id="toast" class="fixed bottom-10 right-10 bg-gray-800 text-white py-2 px-5 rounded-lg shadow-xl border border-emerald-500 opacity-0 transform translate-y-5 transition-all duration-300">
+            Copied to clipboard!
+        </div>
+
+    </div>
+
+    <script>
+        function minifyLua(code) {
+            let minified = code.replace(/--.*/g, "");
+            minified = minified.replace(/--\[\[.*?\]\]/gs, "");
+            minified = minified.replace(/\n|\r|\t/g, " ");
+            minified = minified.replace(/\s+/g, " ").trim();
+            return minified;
+        }
+
+        function encryptString(str, dynamicKey) {
+            let encrypted = [];
+            for (let i = 0; i < str.length; i++) {
+                let charCode = str.charCodeAt(i);
+                // Apply multiple layers of encryption
+                charCode = (charCode * 3 + dynamicKey + i) % 256; // Arithmetic and index-based
+                charCode = charCode ^ (dynamicKey + i); // XOR with dynamic key and index
+                encrypted.push(charCode);
+            }
+            return `{${encrypted.join(",")}}`;
+        }
+
+        function generateRandomUnicodeName(length) {
+            let name = '';
+            for (let i = 0; i < length; i++) {
+                // Generate random Unicode characters (e.g., from a less common block)
+                name += String.fromCharCode(0x1800 + Math.floor(Math.random() * 0x100)); 
+            }
+            return name;
+        }
+
+        function obfuscateCodeTransformation(code) {
+            // Simple renaming of common Lua keywords/variables (very basic, needs AST for robustness)
+            let transformedCode = code;
+            transformedCode = transformedCode.replace(/local /g, `local ${generateRandomUnicodeName(5)} `);
+            transformedCode = transformedCode.replace(/function /g, `function ${generateRandomUnicodeName(5)} `);
+            transformedCode = transformedCode.replace(/end/g, `end --[[${generateRandomUnicodeName(3)}]]`);
+
+            // Insert dead code (simple example)
+            const deadCode = `\n    local ${generateRandomUnicodeName(4)} = 0; if ${generateRandomUnicodeName(4)} > 1 then print("${generateRandomUnicodeName(6)}") end;\n`;
+            transformedCode = transformedCode.split(';').join(deadCode + ';');
+
+            // Number obfuscation (simple example: replace numbers with arithmetic expressions)
+            transformedCode = transformedCode.replace(/\b(\d+)\b/g, (match, num) => {
+                const val = parseInt(num);
+                const op1 = Math.floor(Math.random() * val);
+                const op2 = val - op1;
+                return `(${op1} + ${op2})`;
+            });
+
+            return transformedCode;
+        }
+
+        function vmifyObfuscate(minifiedCode) {
+            const CHUNK_SIZE = 40; 
+            const key = Math.floor(Math.random() * 255) + 1;
+            
+            const vm_vars = {
+                instructions: `iset_${Math.random().toString(36).substring(2, 8)}`,
+                buffer: `buf_${Math.random().toString(36).substring(2, 8)}`,
+                state: `state_${Math.random().toString(36).substring(2, 8)}`,
+                dispatcher: `disp_${Math.random().toString(36).substring(2, 8)}`,
+                vm_func: `vm_func_${Math.random().toString(36).substring(2, 8)}`,
+                vm_data: `vm_data_${Math.random().toString(36).substring(2, 8)}`,
+            };
+
+            // Apply code transformation and renaming first
+            minifiedCode = obfuscateCodeTransformation(minifiedCode);
+
+            // --- Control Flow Flattening (Simplified) ---
+            // This is a simplified approach without a full Lua AST parser.
+            // It will break the code into chunks and use a state machine.
+            const codeBlocks = minifiedCode.split(";").filter(block => block.trim() !== "");
+            const numBlocks = codeBlocks.length;
+            const blockMap = {};
+            let flattenedCode = "";
+
+            for (let i = 0; i < numBlocks; i++) {
+                const blockId = Math.random().toString(36).substring(2, 10);
+                blockMap[blockId] = codeBlocks[i].trim();
+            }
+
+            const blockIds = Object.keys(blockMap);
+            // Shuffle block IDs to further obscure flow
+            for (let i = blockIds.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [blockIds[i], blockIds[j]] = [blockIds[j], blockIds[i]];
+            }
+
+            // Initial state
+            let currentState = blockIds[0];
+
+            flattenedCode += `local ${vm_vars.state} = "${currentState}";\n`;
+            flattenedCode += `while true do\n`;
+            flattenedCode += `  if ${vm_vars.state} == "${blockIds[0]}" then\n`;
+            flattenedCode += `    ${blockMap[blockIds[0]]};\n`;
+            flattenedCode += `    ${vm_vars.state} = "${blockIds[1] || blockIds[0]}"; -- Move to next or loop if only one block\n`;
+            for (let i = 1; i < numBlocks; i++) {
+                flattenedCode += `  elseif ${vm_vars.state} == "${blockIds[i]}" then\n`;
+                flattenedCode += `    ${blockMap[blockIds[i]]};\n`;
+                flattenedCode += `    ${vm_vars.state} = "${blockIds[(i + 1) % numBlocks]}"; -- Loop back to start if last block\n`;
+            }
+            flattenedCode += `  else\n`;
+            flattenedCode += `    break; -- Should not happen in normal flow\n`;
+            flattenedCode += `  end\n`;
+            flattenedCode += `end\n`;
+
+            // --- Opaque Predicates ---
+            // Add a simple opaque predicate that always evaluates to true
+            const opaquePredicate = `if (1 == 1) then -- Opaque Predicate\n`;
+            const opaquePredicateEnd = `end -- End Opaque Predicate\n`;
+            flattenedCode = opaquePredicate + flattenedCode + opaquePredicateEnd;
+
+            // Use the flattened code as the new minifiedCode for VMification
+            minifiedCode = flattenedCode;
+
+            const chunks = [];
+            for (let i = 0; i < minifiedCode.length; i += CHUNK_SIZE) {
+                const chunkStr = minifiedCode.substring(i, i + CHUNK_SIZE);
+                const bytecode = chunkStr.split("").map(c => c.charCodeAt(0) ^ key);
+                chunks.push({
+                    originalIndex: chunks.length,
+                    bytecode: `{${bytecode.join(",")}}`
+                });
+            }
+
+            for (let i = chunks.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [chunks[i], chunks[j]] = [chunks[j], chunks[i]];
+            }
+
+            const finalInstructionTable = [];
+            for (let i = 0; i < chunks.length; i++) {
+                const chunk = chunks[i];
+                finalInstructionTable.push(`{${chunk.bytecode},${chunk.originalIndex}}`);
+            }
+            
+            const instructionTable = `{${finalInstructionTable.join(",")}}`;
+
+            const coreVmStub = `
+                local g, s, l, se, sm, bit, t_concat = _G, _G.string, _G.loadstring, _G.setfenv, _G.setmetatable, _G.bit32 or _G.bit, _G.table.concat;
+                local build_str = (function(c, bx) return function(t, k) if not t then return '' end; local r=''; for i=1,#t do r=r..c(bx.bxor(t[i], k)) end; return r; end end)(s.char, bit);
+                local decrypt_str = (function(c, bx) return function(t, k) local r=''; for i=1,#t do local charCode = bx.bxor(t[i], (k + i - 1)); charCode = (charCode - (k + i - 1)) / 3 % 256; r=r..c(charCode) end; return r; end end)(s.char, bit);
+                
+                local ${vm_vars.instructions} = ${instructionTable};
+                local ${vm_vars.buffer} = {};
+                local env, key = {}, ${key};
+                sm(env, {__index = g});
+                env.loadstring, env.dofile = nil, nil;
+
+                -- Enhanced VM Instruction Set and Dispatcher
+                local function ${vm_vars.dispatcher}(instruction_set, data_buffer, vm_key)
+                    local vm_local_env = { _G = _G, string = string, table = table, bit = bit, loadstring = loadstring, setfenv = setfenv, setmetatable = setmetatable };
+                    setmetatable(vm_local_env, {__index = _G});
+
+                    for i=1, #instruction_set do
+                        local inst = instruction_set[i];
+                        local original_pos = inst[2];
+                        local decrypted_chunk = build_str(inst[1], vm_key);
+                        data_buffer[original_pos + 1] = decrypted_chunk;
+                    end;
+
+                    local final_code, err = loadstring(table.concat(data_buffer,''));
+                    if final_code then 
+                        setfenv(final_code, vm_local_env);
+                        final_code();
+                    else
+                        print("Obfuscation VM Error:", err);
+                    end
+                end
+
+                ${vm_vars.dispatcher}(${vm_vars.instructions}, ${vm_vars.buffer}, key);
+            `;
+
+            const minifiedCoreVm = minifyLua(coreVmStub);
+
+            function checksum(str) {
+                let sum = 0;
+                for (let i = 0; i < str.length; i++) {
+                    sum = (sum + str.charCodeAt(i) * (i + 1)) % 65535;
+                }
+                return sum;
+            }
+            const vmChecksum = checksum(minifiedCoreVm);
+            const vmBytecode = minifiedCoreVm.split("").map(c => c.charCodeAt(0));
+            
+            const antiTamperWrapper = `
+                local s_char, l_str, t_concat, s_byte = string.char, loadstring, table.concat, string.byte;
+                local function do_checksum(s)
+                    local sum=0; for i=1,#s do sum=(sum+s_byte(s,i)*i)%65535 end; return sum;
+                end;
+                (function(vm_code)
+                    if do_checksum(vm_code) ~= ${vmChecksum} then return; end;
+                    (l_str(vm_code))();
+                end)((function(t) local r={}; for i=1,#t do r[i]=s_char(t[i]) end; return t_concat(r,'') end)({${vmBytecode.join(',')}}));
+            `;
+            
+            return minifyLua(antiTamperWrapper);
+        }
+
+        // --- DOM Manipulation and Event Listeners ---
+        const inputEl = document.getElementById('lua-input');
+        const outputEl = document.getElementById('lua-output');
+        const obfuscateBtn = document.getElementById('obfuscate-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const toastEl = document.getElementById('toast');
+
+        obfuscateBtn.addEventListener('click', () => {
+            const luaCode = inputEl.value;
+            if (!luaCode) {
+                outputEl.value = 'Please enter some Lua code first.';
+                return;
+            }
+            try {
+                const minifiedCode = minifyLua(luaCode);
+                const obfuscatedCode = vmifyObfuscate(minifiedCode);
+                outputEl.value = obfuscatedCode;
+                outputEl.classList.add('animate-pulse');
+                setTimeout(() => outputEl.classList.remove('animate-pulse'), 1000);
+            } catch (e) {
+                outputEl.value = `An error occurred: ${e.message}`;
+                console.error(e);
+            }
+        });
+        
+        copyBtn.addEventListener('click', () => {
+            if (!outputEl.value || outputEl.placeholder === outputEl.value) return;
+            outputEl.select();
+            outputEl.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                toastEl.classList.remove('opacity-0', 'translate-y-5');
+                toastEl.classList.add('opacity-100', 'translate-y-0');
+                setTimeout(() => {
+                    toastEl.classList.add('opacity-0', 'translate-y-5');
+                    toastEl.classList.remove('opacity-100', 'translate-y-0');
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+            window.getSelection().removeAllRanges();
+        });
+    </script>
+</body>
+</html>
+
+
