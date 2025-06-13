@@ -671,4 +671,337 @@ print(fibonacci(10))"></textarea>
             constructor() {
                 this.obfuscator = new LuaObfuscator();
                 this.initializeElements();
-                this.
+                this.bindEvents();
+                this.isProcessing = false;
+            }
+
+            initializeElements() {
+                this.elements = {
+                    input: document.getElementById('lua-input'),
+                    output: document.getElementById('lua-output'),
+                    obfuscateBtn: document.getElementById('obfuscate-btn'),
+                    btnText: document.getElementById('btn-text'),
+                    copyBtn: document.getElementById('copy-btn'),
+                    formatBtn: document.getElementById('format-btn'),
+                    validateBtn: document.getElementById('validate-btn'),
+                    analyzeBtn: document.getElementById('analyze-btn'),
+                    toast: document.getElementById('toast'),
+                    toastIcon: document.getElementById('toast-icon'),
+                    toastMessage: document.getElementById('toast-message'),
+                    outputStats: document.getElementById('output-stats'),
+                    levelRadios: document.querySelectorAll('input[name="level"]')
+                };
+            }
+
+            bindEvents() {
+                this.elements.obfuscateBtn.addEventListener('click', () => this.handleObfuscate());
+                this.elements.copyBtn.addEventListener('click', () => this.handleCopy());
+                this.elements.formatBtn.addEventListener('click', () => this.handleFormat());
+                this.elements.validateBtn.addEventListener('click', () => this.handleValidate());
+                this.elements.analyzeBtn.addEventListener('click', () => this.handleAnalyze());
+                
+                // Auto-resize textareas
+                [this.elements.input, this.elements.output].forEach(textarea => {
+                    textarea.addEventListener('input', () => this.autoResize(textarea));
+                });
+            }
+
+            autoResize(textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = textarea.scrollHeight + 'px';
+            }
+
+            getSelectedLevel() {
+                const selected = Array.from(this.elements.levelRadios).find(radio => radio.checked);
+                return selected ? selected.value : 'medium';
+            }
+
+            async handleObfuscate() {
+                if (this.isProcessing) return;
+                
+                const code = this.elements.input.value.trim();
+                if (!code) {
+                    this.showToast('⚠️', 'Please enter some Lua code first', 'warning');
+                    return;
+                }
+
+                this.isProcessing = true;
+                this.elements.obfuscateBtn.classList.add('processing');
+                this.elements.btnText.textContent = '🔄 PROCESSING...';
+                this.elements.obfuscateBtn.disabled = true;
+
+                try {
+                    // Simulate processing delay for better UX
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const level = this.getSelectedLevel();
+                    const startTime = performance.now();
+                    
+                    const obfuscatedCode = this.obfuscator.obfuscate(code, level);
+                    
+                    const endTime = performance.now();
+                    const processingTime = Math.round(endTime - startTime);
+                    
+                    this.elements.output.value = obfuscatedCode;
+                    this.updateOutputStats(code, obfuscatedCode, processingTime);
+                    
+                    this.elements.output.classList.add('animate-pulse');
+                    setTimeout(() => this.elements.output.classList.remove('animate-pulse'), 1000);
+                    
+                    this.showToast('✓', `Obfuscation completed in ${processingTime}ms`, 'success');
+                    
+                } catch (error) {
+                    console.error('Obfuscation error:', error);
+                    this.elements.output.value = `-- Obfuscation Error --\n-- ${error.message}\n-- Please check your Lua syntax and try again.`;
+                    this.showToast('❌', 'Obfuscation failed: ' + error.message, 'error');
+                } finally {
+                    this.isProcessing = false;
+                    this.elements.obfuscateBtn.classList.remove('processing');
+                    this.elements.btnText.textContent = '🔒 FORGE OBFUSCATION';
+                    this.elements.obfuscateBtn.disabled = false;
+                }
+            }
+
+            handleCopy() {
+                const output = this.elements.output.value;
+                if (!output || output.includes('will appear here')) {
+                    this.showToast('⚠️', 'Nothing to copy', 'warning');
+                    return;
+                }
+
+                navigator.clipboard.writeText(output).then(() => {
+                    this.showToast('📋', 'Copied to clipboard!', 'success');
+                }).catch(err => {
+                    // Fallback for older browsers
+                    this.elements.output.select();
+                    this.elements.output.setSelectionRange(0, 99999);
+                    try {
+                        document.execCommand('copy');
+                        this.showToast('📋', 'Copied to clipboard!', 'success');
+                    } catch (e) {
+                        this.showToast('❌', 'Copy failed', 'error');
+                    }
+                    window.getSelection().removeAllRanges();
+                });
+            }
+
+            handleFormat() {
+                const code = this.elements.input.value.trim();
+                if (!code) {
+                    this.showToast('⚠️', 'No code to format', 'warning');
+                    return;
+                }
+
+                try {
+                    const formatted = this.obfuscator.formatLua51(code);
+                    this.elements.input.value = formatted;
+                    this.showToast('✨', 'Code formatted for Lua 5.1', 'success');
+                } catch (error) {
+                    this.showToast('❌', 'Format failed: ' + error.message, 'error');
+                }
+            }
+
+            handleValidate() {
+                const code = this.elements.input.value.trim();
+                if (!code) {
+                    this.showToast('⚠️', 'No code to validate', 'warning');
+                    return;
+                }
+
+                const issues = this.obfuscator.validateLua51(code);
+                if (issues.length === 0) {
+                    this.showToast('✅', 'Code is Lua 5.1 compatible', 'success');
+                } else {
+                    const message = 'Issues found: ' + issues.join(', ');
+                    this.showToast('⚠️', message, 'warning');
+                }
+            }
+
+            handleAnalyze() {
+                const output = this.elements.output.value;
+                if (!output || output.includes('will appear here')) {
+                    this.showToast('⚠️', 'No obfuscated code to analyze', 'warning');
+                    return;
+                }
+
+                const analysis = this.analyzeObfuscation(output);
+                this.showToast('🔍', `Analysis: ${analysis}`, 'info');
+            }
+
+            analyzeObfuscation(code) {
+                const metrics = {
+                    vmLayers: (code.match(/function.*end/gi) || []).length,
+                    constants: (code.match(/local.*=.*{/g) || []).length,
+                    complexity: Math.min(100, Math.floor(code.length / 50))
+                };
+
+                return `${metrics.vmLayers} VM layers, ${metrics.constants} const pools, ${metrics.complexity}% complexity`;
+            }
+
+            updateOutputStats(original, obfuscated, processingTime) {
+                const originalSize = original.length;
+                const obfuscatedSize = obfuscated.length;
+                const ratio = ((obfuscatedSize / originalSize) * 100).toFixed(1);
+                
+                this.elements.outputStats.textContent = 
+                    `${obfuscatedSize} chars (${ratio}% of original) • ${processingTime}ms`;
+            }
+
+            showToast(icon, message, type = 'info') {
+                this.elements.toastIcon.textContent = icon;
+                this.elements.toastMessage.textContent = message;
+                
+                // Color coding based on type
+                const colors = {
+                    success: 'border-emerald-500 bg-emerald-900/50',
+                    error: 'border-red-500 bg-red-900/50',
+                    warning: 'border-yellow-500 bg-yellow-900/50',
+                    info: 'border-blue-500 bg-blue-900/50'
+                };
+                
+                this.elements.toast.className = `fixed bottom-6 right-6 text-white py-3 px-6 rounded-lg shadow-2xl ${colors[type]} opacity-100 transform translate-y-0 transition-all duration-300`;
+                
+                setTimeout(() => {
+                    this.elements.toast.classList.add('opacity-0', 'translate-y-5');
+                    this.elements.toast.classList.remove('opacity-100', 'translate-y-0');
+                }, 3000);
+            }
+        }
+
+        // Enhanced Lua 5.1 Specific Features
+        class Lua51Enhancer {
+            static addLua51Compatibility(obfuscatedCode) {
+                // Add Lua 5.1 specific compatibility layer
+                const compatibility = `
+                    -- Lua 5.1 Compatibility Layer
+                    local bit = bit or bit32 or (function()
+                        local bit = {};
+                        function bit.bxor(a, b)
+                            local r = 0;
+                            local p = 1;
+                            while a > 0 or b > 0 do
+                                local aa, bb = a % 2, b % 2;
+                                if aa ~= bb then r = r + p end;
+                                a, b, p = (a - aa) / 2, (b - bb) / 2, p * 2;
+                            end;
+                            return r;
+                        end;
+                        return bit;
+                    end)();
+                    
+                    local unpack = unpack or table.unpack;
+                    local loadstring = loadstring or load;
+                `;
+                
+                return compatibility + obfuscatedCode;
+            }
+
+            static optimizeForLua51(code) {
+                // Replace modern Lua features with 5.1 equivalents
+                let optimized = code;
+                
+                // Replace table.unpack with unpack
+                optimized = optimized.replace(/table\.unpack/g, 'unpack');
+                
+                // Replace load with loadstring for Lua 5.1
+                optimized = optimized.replace(/\bload\(/g, 'loadstring(');
+                
+                // Ensure proper bit operations
+                optimized = optimized.replace(/bit32\./g, 'bit.');
+                
+                return optimized;
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            const ui = new ObfuscatorUI();
+            
+            // Add some example code
+            const exampleCode = `-- Lua 5.1 Example: Fibonacci Calculator
+local function fibonacci(n)
+    if n <= 1 then 
+        return n 
+    end
+    return fibonacci(n - 1) + fibonacci(n - 2)
+end
+
+-- Calculate and display results
+for i = 1, 10 do
+    print("fibonacci(" .. i .. ") = " .. fibonacci(i))
+end
+
+-- String manipulation example
+local message = "Hello, Lua 5.1!"
+print("Message length: " .. string.len(message))
+print("Uppercase: " .. string.upper(message))`;
+
+            if (!ui.elements.input.value) {
+                ui.elements.input.value = exampleCode;
+            }
+        });
+
+        // Enhanced obfuscation with additional layers
+        LuaObfuscator.prototype.createAdvancedVMObfuscation = function(code, options) {
+            // Multi-stage obfuscation pipeline
+            let stage1 = this.createVMObfuscation(code, options);
+            
+            if (options.multiLayer) {
+                // Add second VM layer
+                stage1 = this.wrapInSecondVM(stage1);
+            }
+            
+            if (options.controlFlowFlattening) {
+                stage1 = this.flattenControlFlow(stage1);
+            }
+            
+            // Final Lua 5.1 optimization
+            stage1 = Lua51Enhancer.optimizeForLua51(stage1);
+            stage1 = Lua51Enhancer.addLua51Compatibility(stage1);
+            
+            return stage1;
+        };
+
+        LuaObfuscator.prototype.wrapInSecondVM = function(code) {
+            const secondVMKey = Math.floor(Math.random() * 255) + 1;
+            const encoded = code.split('').map(c => c.charCodeAt(0) ^ secondVMKey);
+            
+            return `
+                (function()
+                    local key = ${secondVMKey};
+                    local data = {${encoded.join(',')}};
+                    local decoded = {};
+                    for i = 1, #data do
+                        decoded[i] = string.char(bit.bxor(data[i], key));
+                    end;
+                    return loadstring(table.concat(decoded))();
+                end)()
+            `;
+        };
+
+        LuaObfuscator.prototype.flattenControlFlow = function(code) {
+            // Basic control flow flattening - more sophisticated implementation would be needed for production
+            const stateVar = this.generateIdentifier('STATE');
+            const jumpTable = this.generateIdentifier('JUMP');
+            
+            return `
+                local ${stateVar} = 1;
+                local ${jumpTable} = {
+                    [1] = function() ${stateVar} = 2; end,
+                    [2] = function() 
+                        ${code.replace(/return/g, stateVar + ' = 0; return')}
+                        ${stateVar} = 0; 
+                    end
+                };
+                while ${stateVar} > 0 do
+                    if ${jumpTable}[${stateVar}] then
+                        ${jumpTable}[${stateVar}]();
+                    else
+                        break;
+                    end;
+                end;
+            `;
+        };
+    </script>
+</body>
+</html>
