@@ -493,8 +493,8 @@ The output will include:
                 });
                 
                 const vmInstructionsRaw = this.parseCodeToInstructions(code);
-                const obfuscatedVmInstructions = vmInstructionsRaw.map(instr => {
-                    const keyIdx = Math.floor(Math.random() * this.encryptionKeys.length);
+                const obfuscatedVmInstructions = vmInstructionsRaw.map((instr, i) => { // <-- Add 'i' here
+                    const keyIdx = i % this.encryptionKeys.length; // <-- Use deterministic logic
                     return this.polymorphicEncrypt(instr, keyIdx);
                 });
                 
