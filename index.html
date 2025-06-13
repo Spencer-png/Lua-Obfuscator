@@ -418,11 +418,28 @@ The output will include:
                 return result;
             }
 
+            lua51BitwiseXor(a, b) {
+                let result = 0;
+                let power = 1;
+                while (a > 0 || b > 0) {
+                    const bitA = a % 2;
+                    const bitB = b % 2;
+                    if (bitA !== bitB) {
+                        result += power;
+                    }
+                    a = Math.floor(a / 2);
+                    b = Math.floor(b / 2);
+                    power *= 2;
+                }
+                return result;
+            }
+
             polymorphicEncrypt(data, keyIndex = 0) {
                 const key = this.encryptionKeys[keyIndex % this.encryptionKeys.length];
                 let result = '';
                 for (let i = 0; i < data.length; i++) {
-                    result += String.fromCharCode(data.charCodeAt(i) ^ ((key + i) % 256));
+                    const xorResult = this.lua51BitwiseXor(data.charCodeAt(i), (key + i) % 256);
+                    result += String.fromCharCode(xorResult);
                 }
                 return btoa(result);
             }
@@ -472,7 +489,7 @@ The output will include:
                 
                 let stringDeclarations = '';
                 strings.forEach((str, index) => {
-                    stringDeclarations += `_STR[${index}] = _VM_RUNTIME.decrypt("${str.encrypted}", _KEYS[${str.keyIndex + 1}])\\n`;
+                    stringDeclarations += `    _STR[${index}] = _VM_RUNTIME.decrypt("${str.encrypted}", _KEYS[${str.keyIndex + 1}])\\n`;
                 });
                 
                 const vmInstructionsRaw = this.parseCodeToInstructions(code);
@@ -483,39 +500,77 @@ The output will include:
                 
                 const dispatcherCases = this.generateDispatcherCases(obfuscatedVmInstructions);
                 
-                return `
-local _VM_RUNTIME = {}
+                return `local _VM_RUNTIME = {}
 local _STR = {}
 local _KEYS = {${this.encryptionKeys.join(', ')}}
 local _VM_INSTRUCTIONS = {${obfuscatedVmInstructions.map(b64 => `"${b64}"`).join(', ')}}
 local _OPCODES = {${Object.entries(this.vmOpcodes).map(([k, v]) => `[${v}] = "${k}"`).join(', ')}}
 
-function _VM_RUNTIME.decrypt(data, key)
+function _VM_RUNTIME.xor(a, b)
+    local result = 0
+    local power = 1
+    while a > 0 or b > 0 do
+        local bitA = a % 2
+        local bitB = b % 2
+        if bitA ~= bitB then
+            result = result + power
+        end
+        a = math.floor(a / 2)
+        b = math.floor(b / 2)
+        power = power * 2
+    end
+    return result
+end
+
+function _VM_RUNTIME.base64_decode(data, key)
     local decoded = ""
     local b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
     
     data = data:gsub('[^'..b64chars..'=]', '')
-    data = data .. string.rep('=', (4 - #data % 4) % 4)
+    if #data % 4 ~= 0 then
+        data = data .. string.rep('=', 4 - (#data % 4))
+    end
     
     for i = 1, #data, 4 do
         local a, b, c, d = data:byte(i, i+3)
-        a = b64chars:find(string.char(a)) - 1
-        b = b64chars:find(string.char(b)) - 1
-        c = b64chars:find(string.char(c or 65)) - 1
-        d = b64chars:find(string.char(d or 65)) - 1
-        local n = a * 262144 + b * 4096 + c * 64 + d
+        if not a or not b then break end
+        
+        local char_a = string.char(a)
+        local char_b = string.char(b)
+        local char_c = c and string.char(c) or '='
+        local char_d = d and string.char(d) or '='
+        
+        local pos_a = b64chars:find(char_a)
+        local pos_b = b64chars:find(char_b)
+        local pos_c = char_c ~= '=' and b64chars:find(char_c) or 65
+        local pos_d = char_d ~= '=' and b64chars:find(char_d) or 65
+        
+        if not pos_a or not pos_b then
+            error("Invalid Base64 character at position " .. i)
+        end
+        
+        pos_a = pos_a - 1
+        pos_b = pos_b - 1
+        pos_c = pos_c and (pos_c - 1) or 64
+        pos_d = pos_d and (pos_d - 1) or 64
+        
+        local n = pos_a * 262144 + pos_b * 4096 + pos_c * 64 + pos_d
         decoded = decoded .. string.char(math.floor(n / 65536))
-        if c ~= 64 then decoded = decoded .. string.char(math.floor(n / 256) % 256) end
-        if d ~= 64 then decoded = decoded .. string.char(n % 256) end
+        if pos_c ~= 64 then decoded = decoded .. string.char(math.floor(n / 256) % 256) end
+        if pos_d ~= 64 then decoded = decoded .. string.char(n % 256) end
     end
     
     local result = ""
     for i = 1, #decoded do
         local byte = string.byte(decoded, i)
-        result = result .. string.char(byte ~ ((key + i - 1) % 256))
+        result = result .. string.char(_VM_RUNTIME.xor(byte, (key + i - 1) % 256))
     end
     
     return result
+end
+
+function _VM_RUNTIME.decrypt(data, key)
+    return _VM_RUNTIME.base64_decode(data, key)
 end
 
 function _VM_RUNTIME.execute_instruction(instruction_id)
@@ -530,12 +585,11 @@ function _VM_RUNTIME.execute_instruction(instruction_id)
     end
     local opcode = parts[1]
     
-    ${dispatcherCases}
+${dispatcherCases}
 end
 
 function _VM_RUNTIME.run()
-    ${stringDeclarations}
-    for i = 0, ${obfuscatedVmInstructions.length} - 1 do
+${stringDeclarations}    for i = 0, ${obfuscatedVmInstructions.length} - 1 do
         _VM_RUNTIME.execute_instruction(i)
     end
 end
@@ -588,8 +642,7 @@ _VM_RUNTIME.run()`;
                 const cases = [];
                 instructions.forEach((_, i) => {
                     const keyIdx = Math.floor(Math.random() * this.encryptionKeys.length);
-                    cases.push(`
-    if instruction_id == ${i} then
+                    cases.push(`    if instruction_id == ${i} then
         if opcode == "PRINT_STR" then
             print(_STR[tonumber(parts[2])])
         elseif opcode == "PRINT_RAW" then
@@ -631,8 +684,7 @@ _VM_RUNTIME.run()`;
                 
                 const dummyOp = dummyOperations[Math.floor(Math.random() * dummyOperations.length)];
                 
-                return `
-local _CF_GUARD = {}
+                return `local _CF_GUARD = {}
 _CF_GUARD.check1 = function() return ${randomPredicate} end
 _CF_GUARD.check2 = function() ${dummyOp}; return not ${randomPredicate} end
 
@@ -640,7 +692,7 @@ local function _EXEC_FLOW()
     if _CF_GUARD.check1() or _CF_GUARD.check2() then
         local _path = math.random(1, 10)
         if _path > 5 and _CF_GUARD.check1() then
-            ${code}
+${code}
         else
             local _dummy_var = 12345
             if _dummy_var == 0 then
@@ -656,21 +708,21 @@ _EXEC_FLOW()`;
             }
 
             addAntiDebugProtection(code) {
+                const newline = '\\n';
                 const checks = this.antiDebugSignatures.map(sig => 
-                    `if not (${sig}) then error("Anti-debug check failed") end`
+                    `    if not (${sig}) then error("Anti-debug check failed") end`
                 );
                 
-                return `
-local _AD_START_TIME = os.clock()
+                return `local _AD_START_TIME = os.clock()
 local _AD_CHECKS = {}
 
 _AD_CHECKS.run = function()
-    ${checks.join('\\n    ')}
+${checks.join(newline)}
     return true
 end
 
 if _AD_CHECKS.run() then
-    ${code}
+${code}
 else
     error("Debugger or tampering detected")
 end`;
@@ -680,41 +732,81 @@ end`;
                 const polyKeyIndex = Math.floor(Math.random() * this.encryptionKeys.length);
                 const encrypted = this.polymorphicEncrypt(code, polyKeyIndex);
                 
-                return `
-local _POLY_LAYER = {}
+                return `local _POLY_LAYER = {}
 _POLY_LAYER.key_idx = ${polyKeyIndex}
 _POLY_LAYER.data = "${encrypted}"
+_POLY_LAYER.keys = {${this.encryptionKeys.join(', ')}}
 
-function _POLY_LAYER.decrypt_and_execute()
-    local key = _KEYS[_POLY_LAYER.key_idx + 1]
+function _POLY_LAYER.xor(a, b)
+    local result = 0
+    local power = 1
+    while a > 0 or b > 0 do
+        local bitA = a % 2
+        local bitB = b % 2
+        if bitA ~= bitB then
+            result = result + power
+        end
+        a = math.floor(a / 2)
+        b = math.floor(b / 2)
+        power = power * 2
+    end
+    return result
+end
+
+function _POLY_LAYER.base64_decode_safe(data, key)
     local decoded = ""
     local b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-    local data = _POLY_LAYER.data
     
     data = data:gsub('[^'..b64chars..'=]', '')
-    data = data .. string.rep('=', (4 - #data % 4) % 4)
+    if #data % 4 ~= 0 then
+        data = data .. string.rep('=', 4 - (#data % 4))
+    end
     
     for i = 1, #data, 4 do
         local a, b, c, d = data:byte(i, i+3)
-        a = b64chars:find(string.char(a)) - 1
-        b = b64chars:find(string.char(b)) - 1
-        c = b64chars:find(string.char(c or 65)) - 1
-        d = b64chars:find(string.char(d or 65)) - 1
-        local n = a * 262144 + b * 4096 + c * 64 + d
+        if not a or not b then break end
+        
+        local char_a = string.char(a)
+        local char_b = string.char(b)
+        local char_c = c and string.char(c) or '='
+        local char_d = d and string.char(d) or '='
+        
+        local pos_a = b64chars:find(char_a)
+        local pos_b = b64chars:find(char_b)
+        local pos_c = char_c ~= '=' and b64chars:find(char_c) or nil
+        local pos_d = char_d ~= '=' and b64chars:find(char_d) or nil
+        
+        if not pos_a or not pos_b then
+            error("Invalid Base64 character: " .. char_a .. " or " .. char_b .. " at position " .. i)
+        end
+        
+        pos_a = pos_a - 1
+        pos_b = pos_b - 1
+        pos_c = pos_c and (pos_c - 1) or 64
+        pos_d = pos_d and (pos_d - 1) or 64
+        
+        local n = pos_a * 262144 + pos_b * 4096 + pos_c * 64 + pos_d
         decoded = decoded .. string.char(math.floor(n / 65536))
-        if c ~= 64 then decoded = decoded .. string.char(math.floor(n / 256) % 256) end
-        if d ~= 64 then decoded = decoded .. string.char(n % 256) end
+        if pos_c ~= 64 then decoded = decoded .. string.char(math.floor(n / 256) % 256) end
+        if pos_d ~= 64 then decoded = decoded .. string.char(n % 256) end
     end
     
     local result = ""
     for i = 1, #decoded do
         local byte = string.byte(decoded, i)
-        result = result .. string.char(byte ~ ((key + i - 1) % 256))
+        result = result .. string.char(_POLY_LAYER.xor(byte, (key + i - 1) % 256))
     end
+    
+    return result
+end
+
+function _POLY_LAYER.decrypt_and_execute()
+    local key = _POLY_LAYER.keys[_POLY_LAYER.key_idx + 1]
+    local result = _POLY_LAYER.base64_decode_safe(_POLY_LAYER.data, key)
     
     local success, err = pcall(function() loadstring(result)() end)
     if not success then
-        error("Polymorphic layer execution failed: " .. err)
+        error("Polymorphic layer execution failed: " .. tostring(err))
     end
 end
 
