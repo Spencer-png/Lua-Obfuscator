@@ -426,7 +426,7 @@ print(fibonacci(10))"></textarea>
                 for (let iter = 0; iter < iterations; iter++) {
                     const key = Math.floor(Math.random() * 255) + 1;
                     keys.push(key);
-                    currentCode = this.encodeLayer(currentCode, key); // Pass to corrected function
+                    currentCode = this.encodeLayer(currentCode, key);
                 }
 
                 // Create instruction chunks
@@ -451,19 +451,14 @@ print(fibonacci(10))"></textarea>
                 // Final integrity protection
                 return this.addIntegrityProtection(vmCore);
             }
-            
-            // ### CORRECTED FUNCTION ###
-            // This function now handles both string and array inputs for multi-layer encoding.
+
             encodeLayer(data, key) {
                 let sourceData;
                 if (typeof data === 'string') {
-                    // Layer 1: Convert string to an array of character codes
                     sourceData = Array.from(data).map(char => char.charCodeAt(0));
                 } else {
-                    // Subsequent Layers: Data is already an array of character codes
                     sourceData = data;
                 }
-                // Apply the XOR key to each character code
                 return sourceData.map(charCode => charCode ^ key);
             }
 
@@ -543,64 +538,79 @@ print(fibonacci(10))"></textarea>
                 `;
             }
 
+            // ### CORRECTED FUNCTION ###
             addAntiDebug(vmCore, vmVars) {
+                const adFunc = this.generateIdentifier('AD'); // Generate name ONCE
                 const antiDebugChecks = `
-                    local function ${this.generateIdentifier('AD')}()
+                    local function ${adFunc}()
                         if debug and debug.getinfo then
                             local info = debug.getinfo(2);
                             if info and info.what ~= 'C' then return false end;
                         end;
                         return true;
                     end;
-                    if not ${this.generateIdentifier('AD')}() then return end;
+                    if not ${adFunc}() then return end;
                 `;
-
                 return vmCore.replace('local env =', antiDebugChecks + 'local env =');
             }
 
+            // ### CORRECTED FUNCTION ###
             addPolymorphicWrapper(vmCore, vmVars) {
                 const morphKey = Math.floor(Math.random() * 1000);
-                const morphedCore = vmCore.split('').map((char, i) =>
+                const morphedCore = Array.from(vmCore).map((char, i) =>
                     char.charCodeAt(0) ^ (morphKey + i % 256)
                 );
-
+                
+                // Generate identifiers ONCE and store them
+                const mKeyVar = this.generateIdentifier('M');
+                const dataVar = this.generateIdentifier('D');
+                const resultVar = this.generateIdentifier('R');
+                
+                // Use the stored variables consistently
                 return `
                     (function()
-                        local ${this.generateIdentifier('M')} = ${morphKey};
-                        local ${this.generateIdentifier('D')} = {${morphedCore.join(',')}};
-                        local ${this.generateIdentifier('R')} = {};
-                        for i = 1, #${this.generateIdentifier('D')} do
-                            ${this.generateIdentifier('R')}[i] = string.char(
-                                bit32 and bit32.bxor(${this.generateIdentifier('D')}[i], ${this.generateIdentifier('M')} + (i - 1) % 256) or ${this.generateIdentifier('D')}[i]
+                        local ${mKeyVar} = ${morphKey};
+                        local ${dataVar} = {${morphedCore.join(',')}};
+                        local ${resultVar} = {};
+                        for i = 1, #${dataVar} do
+                            ${resultVar}[i] = string.char(
+                                bit32 and bit32.bxor(${dataVar}[i], ${mKeyVar} + (i - 1) % 256) or ${dataVar}[i]
                             );
                         end;
-                        return loadstring(table.concat(${this.generateIdentifier('R')}))();
+                        return loadstring(table.concat(${resultVar}))();
                     end)()
                 `;
             }
 
+            // ### CORRECTED FUNCTION ###
             addIntegrityProtection(vmCore) {
                 const checksum = this.calculateChecksum(vmCore);
                 const compressed = this.compressCode(vmCore);
+                
+                // Generate identifiers ONCE and store them
+                const chkFunc = this.generateIdentifier('CHK');
+                const codeVar = this.generateIdentifier('CODE');
+                const expectedVar = this.generateIdentifier('EXPECTED');
 
+                // Use the stored variables consistently
                 return `
                     (function()
-                        local function ${this.generateIdentifier('CHK')}(s)
+                        local function ${chkFunc}(s)
                             local sum = 0;
                             for i = 1, #s do
                                 sum = (sum + string.byte(s, i) * i) % 65536;
                             end;
                             return sum;
                         end;
-
-                        local ${this.generateIdentifier('CODE')} = "${compressed}";
-                        local ${this.generateIdentifier('EXPECTED')} = ${checksum};
-
-                        if ${this.generateIdentifier('CHK')}(${this.generateIdentifier('CODE')}) ~= ${this.generateIdentifier('EXPECTED')} then
+                        
+                        local ${codeVar} = "${compressed}";
+                        local ${expectedVar} = ${checksum};
+                        
+                        if ${chkFunc}(${codeVar}) ~= ${expectedVar} then
                             return;
                         end;
-
-                        return loadstring(${this.generateIdentifier('CODE')})();
+                        
+                        return loadstring(${codeVar})();
                     end)()
                 `;
             }
