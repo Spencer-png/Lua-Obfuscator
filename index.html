@@ -1,109 +1,863 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Lua Loader</title>
+    <title>Advanced Lua 5.1 Obfuscator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .input-section, .output-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .section-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #4ecdc4;
+            font-weight: 600;
+        }
+        textarea {
+            width: 100%;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+            line-height: 1.5;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+        }
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .option-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .option-card:hover {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .option-card.active {
+            border-color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.1);
+        }
+        .option-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .option-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            accent-color: #4ecdc4;
+        }
+        .option-title {
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .option-description {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.4;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .status.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        .status.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+        .status.processing {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #4ecdc4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
+        }
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            .button-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="lua-output"></div>
-    <script>
+    <div class="container">
+        <div class="header">
+            <h1>Advanced Lua 5.1 Obfuscator</h1>
+            <p>Military-grade obfuscation with custom VM, dynamic decryption, and anti-analysis protection</p>
+        </div>
         
-(function() {
-    var _ANTI_DEBUG = function() {
-        if(new Date().getTime() - performance.now() > 100) return;if(typeof window.chrome !== 'undefined' && typeof window.chrome.runtime !== 'undefined') return;if(window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) return;if(navigator.userAgent.indexOf('PhantomJS') !== -1) return;if(window.callPhantom || window._phantom) return;if(navigator.webdriver) return;if(document.documentElement.getAttribute('webdriver')) return;var canvas = document.createElement('canvas'); if(canvas.getContext('webgl').getParameter(37445) === 'Google SwiftShader') return;
-        
-        var fp = '';
-        fp += navigator.userAgent;
-        fp += navigator.language;
-        fp += screen.width + 'x' + screen.height;
-        fp += new Date().getTimezoneOffset();
-        fp += navigator.hardwareConcurrency || 0;
-        var hash = 0;
-        for(var i = 0; i < fp.length; i++) {
-            var char = fp.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-        }
-        if(Math.abs(hash) % 1000 !== 42) return;
-        
-    };
-    
-    var _POLY_DECRYPT = function(data, key) {
-        var result = '';
-        for(var i = 0; i < data.length; i++) {
-            result += String.fromCharCode(data.charCodeAt(i) ^ ((key + i) % 256));
-        }
-        return result;
-    };
-    
-    var _B64_DECODE = function(data) {
-        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-        var result = '';
-        data = data.replace(/[^A-Za-z0-9+/]/g, '');
-        for(var i = 0; i < data.length; i += 4) {
-            var a = chars.indexOf(data.charAt(i));
-            var b = chars.indexOf(data.charAt(i+1));
-            var c = chars.indexOf(data.charAt(i+2));
-            var d = chars.indexOf(data.charAt(i+3));
-            var bitmap = (a << 18) | (b << 12) | (c << 6) | d;
-            result += String.fromCharCode((bitmap >> 16) & 255);
-            if(c !== 64) result += String.fromCharCode((bitmap >> 8) & 255);
-            if(d !== 64) result += String.fromCharCode(bitmap & 255);
-        }
-        return result;
-    };
-    
-    var _EXEC_LUA = function() {
-        _ANTI_DEBUG();
-        
-        var lua_vm_code = _B64_DECODE('CmxvY2FsIF9WTV9DT1JFID0ge30KbG9jYWwgX09QQ09ERVMgPSB7WzE1N10gPSAiTE9BRCIsIFsyMjZdID0gIlNUT1JFIiwgWzIxNF0gPSAiQUREIiwgWzIzNF0gPSAiU1VCIiwgWzE3OF0gPSAiTVVMIiwgWzE3NF0gPSAiRElWIiwgWzE5M10gPSAiSk1QIiwgWzE4M10gPSAiQ0FMTCIsIFsxMTZdID0gIlJFVCIsIFsxMDZdID0gIkNNUCIsIFsxMDddID0gIlBVU0giLCBbMjI1XSA9ICJQT1AifQpsb2NhbCBfS0VZUyA9IHsxOTUsIDU1LCAxNTQsIDY3LCAyNiwgMTI1LCAxMDcsIDIzNSwgNTUsIDIxNCwgMjE3LCAyMDMsIDE2OSwgMjQ4LCA3NywgOX0KbG9jYWwgX1NUQUNLID0ge30KbG9jYWwgX1JFR0lTVEVSUyA9IHt9CgpmdW5jdGlvbiBfVk1fQ09SRS5kZWNyeXB0KGRhdGEsIGtleV9pZHgpCiAgICBsb2NhbCBrZXkgPSBfS0VZU1soa2V5X2lkeCAlICMxNikgKyAxXQogICAgbG9jYWwgZGVjb2RlZCA9ICIiCiAgICBsb2NhbCBiNjRfY2hhcnMgPSAiQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrLyIKICAgIAogICAgZGF0YSA9IHN0cmluZy5nc3ViKGRhdGEsICdbXicgLi4gYjY0X2NoYXJzIC4uICc9XScsICcnKQogICAgZGF0YSA9IHN0cmluZy5nc3ViKGRhdGEsICc9JywgJycpCiAgICBkYXRhID0gZGF0YSAuLiBzdHJpbmcucmVwKCc9JywgKDQgLSAjZGF0YSAlIDQpICUgNCkKICAgIAogICAgZm9yIGkgPSAxLCAjZGF0YSwgNCBkbwogICAgICAgIGxvY2FsIGEsIGIsIGMsIGQgPSBzdHJpbmcuYnl0ZShkYXRhLCBpLCBpKzMpCiAgICAgICAgYSA9IGI2NF9jaGFyczpmaW5kKHN0cmluZy5jaGFyKGEpKSAtIDEKICAgICAgICBiID0gYjY0X2NoYXJzOmZpbmQoc3RyaW5nLmNoYXIoYikpIC0gMQogICAgICAgIGMgPSBiNjRfY2hhcnM6ZmluZChzdHJpbmcuY2hhcihjIG9yIDY1KSkgLSAxCiAgICAgICAgZCA9IGI2NF9jaGFyczpmaW5kKHN0cmluZy5jaGFyKGQgb3IgNjUpKSAtIDEKICAgICAgICBsb2NhbCBuID0gYSAqIDI2MjE0NCArIGIgKiA0MDk2ICsgYyAqIDY0ICsgZAogICAgICAgIGRlY29kZWQgPSBkZWNvZGVkIC4uIHN0cmluZy5jaGFyKG1hdGguZmxvb3IobiAvIDY1NTM2KSkKICAgICAgICBpZiBjIH49IDY0IHRoZW4gZGVjb2RlZCA9IGRlY29kZWQgLi4gc3RyaW5nLmNoYXIobWF0aC5mbG9vcihuIC8gMjU2KSAlIDI1NikgZW5kCiAgICAgICAgaWYgZCB+PSA2NCB0aGVuIGRlY29kZWQgPSBkZWNvZGVkIC4uIHN0cmluZy5jaGFyKG4gJSAyNTYpIGVuZAogICAgZW5kCiAgICAKICAgIGxvY2FsIHJlc3VsdCA9ICIiCiAgICBmb3IgaSA9IDEsICNkZWNvZGVkIGRvCiAgICAgICAgbG9jYWwgYnl0ZSA9IHN0cmluZy5ieXRlKGRlY29kZWQsIGkpCiAgICAgICAgcmVzdWx0ID0gcmVzdWx0IC4uIHN0cmluZy5jaGFyKGJ5dGUgfiAoKGtleSArIGkgLSAxKSAlIDI1NikpCiAgICBlbmQKICAgIAogICAgcmV0dXJuIHJlc3VsdAplbmQKCmZ1bmN0aW9uIF9WTV9DT1JFLmRlY29tcHJlc3MoZGF0YSkKICAgIGxvY2FsIHJlc3VsdCA9ICIiCiAgICBsb2NhbCBwb3MgPSAxCiAgICB3aGlsZSBwb3MgPD0gI2RhdGEgZG8KICAgICAgICBsb2NhbCBmbGFnID0gc3RyaW5nLmJ5dGUoZGF0YSwgcG9zKQogICAgICAgIHBvcyA9IHBvcyArIDEKICAgICAgICBpZiBmbGFnID09IDAgdGhlbgogICAgICAgICAgICByZXN1bHQgPSByZXN1bHQgLi4gc3RyaW5nLmNoYXIoc3RyaW5nLmJ5dGUoZGF0YSwgcG9zKSkKICAgICAgICAgICAgcG9zID0gcG9zICsgMQogICAgICAgIGVsc2UKICAgICAgICAgICAgbG9jYWwgbGVuZ3RoID0gZmxhZwogICAgICAgICAgICBsb2NhbCBvZmZzZXQgPSBzdHJpbmcuYnl0ZShkYXRhLCBwb3MpCiAgICAgICAgICAgIHBvcyA9IHBvcyArIDEKICAgICAgICAgICAgbG9jYWwgc3RhcnQgPSAjcmVzdWx0IC0gb2Zmc2V0ICsgMQogICAgICAgICAgICBmb3IgaSA9IDEsIGxlbmd0aCBkbwogICAgICAgICAgICAgICAgcmVzdWx0ID0gcmVzdWx0IC4uIHN0cmluZy5jaGFyKHN0cmluZy5ieXRlKHJlc3VsdCwgc3RhcnQgKyAoKGkgLSAxKSAlIG9mZnNldCkpKQogICAgICAgICAgICBlbmQKICAgICAgICBlbmQKICAgIGVuZAogICAgcmV0dXJuIHJlc3VsdAplbmQKCmZ1bmN0aW9uIF9WTV9DT1JFLmV4ZWN1dGUoZW5jcnlwdGVkX2NvZGUpCiAgICBsb2NhbCBkZWNyeXB0ZWQgPSBfVk1fQ09SRS5kZWNyeXB0KGVuY3J5cHRlZF9jb2RlLCAwKQogICAgbG9jYWwgZGVjb21wcmVzc2VkID0gX1ZNX0NPUkUuZGVjb21wcmVzcyhkZWNyeXB0ZWQpCiAgICByZXR1cm4gbG9hZHN0cmluZyhkZWNvbXByZXNzZWQpKCkKZW5kCgpsb2NhbCBlbmNyeXB0ZWRfcGF5bG9hZCA9ICJ1MWl3bmloRDFRM2FNWnJZeUJGL0I0RXVvcG1rZEJqaW1tb3UvOWs3L3FEVGdvcVRGVVdWTm1JNXhGeU1IRTdQSEVsZlQyU3crOEhBejhERElsWFU3ZGF2bSt1c2Y3N044Ti9RNDNtbnFLc29DbnNnZk52L2tReXpvbURpM3VUVnpKTks4VUQvMGxLYVZWaFo4YXpIRzgvZDJORFNKYU9NN0hQaTRLQVA5bjErKzdtenVTS3lmTmM2MHRBNUh5czU5anY3T0FnR05aUU1xN0tRNlBzSzJkREZtNVNKazZyOU5KQ1F4WkpYcW8xQmxZY0N5S0VXQkFlTllXbGE3N0ZkZkd3MmVXcC9BczNvb3hMUmNlTG1USTFXNUh2bmx2WnNxamdXVTJSTGNtOTJRbFgvUStqdU5zc1oycGNyUThETnl5WjJSLzRHWVNibEhWZ3hRamw1ZTN4NmZ4dGJQeTV0cEFDcHdrUUJaMVcwTXhZNEdPRzFWUlFTbW9CakdkV2RCd1VjUlZ5ak53ZGRWemdMY0U4SUpVUlRPcmtNWkI0Z0R3NDJIU2ovMy8yVlp3NHZLQ25jRkZtbE5YN1NZQVZxUTRZSVpjYUpPb1VXSnpma3lhbktNRkhXenF5V1F1dVgzT00xamNpZ3A3UkVVOVVHSm1YSWdoV2Q2RzRQVHFZTllKQmRESVpWODY3bDBrUmhLT3hOSTdmMVZpQ21uOTgrSExZamlCdytDL1ovZ21uRDRIQXZZS0JrRG9aTjlVQ3h1eFd4MWdSekduTkwwc3BPbnNhTWlTOE1lVW1VMWcwRFlLbEJTbkExbHNvVGF0eHBKN2xJb3VNQmhkK0h1OExLa29RclhzYkdyNEpKYURNV1kvMmZKNitzVU9LMXUzOXRTaVp4ZVdTZHd1TmhPREFXVlBMbzFNZmdVSWE3dVVoelZlcXg3dlNTZmdvOXNoL3RwV0hrSWpsaFpQbmFzZkdxY2JKLzhpeUZFdW9iWnVWdmU2MGFzSjZFWXArZ3ByUWFNS1ZPWUVNWktESG9rdndSUDZVeU1GY2Y3M09UUGs0bVhJZ1ArZjN3bldUUFZ1YitLd0YxNWI3UlhJRVhRcTFibXg3bUpoS01XQk1aSWYwRGZNSVpwSWM2M1dWVUpUOEVQKzQzY1V0NGt2RmZpMkZJOU5iUi9HTGc4SWVrOFk4bFFqeU5DalRXekx1M2M1V2dsZ2hocThmVElrczhaUVI5YWpFaStPOGVBUkUzdEt0RFpVang2aWZRQ2o4SDdsUGxhaWl4STd6bS9VRXBGSVJZQTg3Q005WW81dENocW04bUNqUmtXZVVEeVRMMWlFMm8xUDNQMDRWNk5rL1pYSUR5QmVEbzBLQTcrblBVK29OVXk0L0R3anJXQkVHaTJpOVFXRS9aK3BUaEI4dkxsdVhpdEhDcnBlcHlUbzZ2S1BqbHdyTEEwTlBLNU5jRHpjbG45K1o3NHU3RU1HSVBBTzF1UzBMSkttMFdZcW5EMmh3UTdpcWNRNENTM1hwY0o1ZVRHOUNzYjJGRUNmKzV5VFVYaVlPRzlWSXRFRTAxR2ZFeVQxTitrdGd3TnNtbVdJVWpMZW9OS1ZwTUxxTHRxY1R6YjJRWlZOOXJKd2tTV29XNVVLWlVCSElrZjgxcUt4aXJzQ1Nham1iY05rSVVGelAwZ3NRM21KZStZdmdhVHV2Z3ZWd1hEKys2eG1ZU09oL01tTFBJL3hZdHY5U0Jkd283M0pSUVVIZENLZXdsbW1BL1JMN096Sm5LcDR0c0tZQS8vdkRKR3lsZklJWTluWEJ2S1ZqZ1NseVNLVmhQcG0vYlRTd3NCcUV1WFQ4S1c3U2E5L0p5QmFnVmVoRnE3SVRMS055bDBIYW4zNytOUVVzMlowR0VlRVp0SFNGbTFjTGJjQlpSUURJeVhHVEZYSkduaS9IY09kTGNNWGhYZG5MRXd3VUMzVE9SZE5QMGx5bFJobWE0cXpvVjNuZnJMMDhES1dYaXBFUmFobDZVMktORGg2Y0xZOWN6SkhXbVFQZHdyNTFkVTJKRHVVZGxMZ2d2YThpT2h0RVJ2WDBvb2NhbjNMektDOGR3U1hCWDd2ODFtQndrR0ZzWlhES1c2RkZVcGlaMTB3c09lKzBDZWVsOG9ZbGx4K0VNNDR6c3F3S2d2cG42RGNYYTg5SUJqamhXSmNrRE1lQ2Q3aVFXUWhISTQ2MGtmdWZrTW84empvSnpJQTRId0k2WDZuQS9iUGRNdXVxTXIxMkJZOFJ5eWJWQTZrbktlTkdjRXlmYnFUZlozdVpCVysxMUdNcC9YUEdRRzNobmErMVdqUFMrOWEzVzQyRDQxcU03MWJDRXZSZTBNSTFJZmJ2Y1RZL0RBbzlDcGlpVUxpWDdhK09WeVFpUmZueUR2SWdJalpJaVA5d1FsM1lkZkNuelhjdWczYytsWTg1eko0c29FM2lsOEtRMk9lQVRFNjdocng2WitPLzUyeUNrOFJIb1lTWnRIanRTTFp2RmFON0VxN1BXeXZIN2Z3azhrR20vbXlZUjk2L1lLUUVUeE1sTnE5NlBXY0dhVCtrY3JwMEtVZUdydld2M2FiZ2Z0enp0M0V2RVFTMFV6enl0VHU5T0tTZzlGYUFlR1JVSEhJWElxTVhpMCtJTkVvTTYrUkM4Z2plby9qdUQ0b0QySnN3U0pZVFM2Uk1oeEpUcUtlU2FsTFlNcTV1cEdPaUlVeEhlb2x4NStEOVA0UHgzbFZpMTVaM2FkQU5QNzhvdkVSdnl2Sklvc1lPai9aV2pHOFZsWmJlSzI2YW1kbGdMLzlrSisydDlIMCtLZDVGeHBxc3dFT3lXS3AwY3NWVEZBcHhIbUwyNXlxNERwMkcwVHdwMWkvaGxxWFFiaUtUc2NpUXpRRGg0WjRtYm13UzVRVE5uRSttUm5UY0xRRTRkdUM5djBUMWJYZE9Ia3VxMWZoNlAvMDRUZkNwQlYvNE95OU1LM0xidU8yeWIxL2FZai8zZ1VRVHZSS1hRcHBaMW52MVpPQWNtbE13c09oTjl0ZlFQbDRNZXBNNGtxVTFhdFhlZFZ0K3lQV3J0MmFmRU9aeSs5MWE4eGtLdnlKNlBGUlUyckJJUjlRRnI5U3g4dklqS0dlMGFidE1XcCtVWUVDTFg2OElVeVZocEZUZ1NLYmFUaUNzOTBCYWpMNjlJRHlzVVVyRWlpbTRWdFMydUt6K2Q2QTFKUXJsWG93RUNlajNaMzhrQnR1YlpRUHpKUEp2cUNwakNGQnRCTU1yQ1ZwU2QxYTVzdi9EQmRZcWFsZ3NvNGFnU20zdERGWXR4blVIRUw0c010WDlFZ29hc09mWVhiT1dCZmJEd1lXcCtIQjI2ZGlYUmtzWUJ2R2lQcXhpZ3B2UnJDTSswSGlabWY0N2NDdFJLcHh1V2pjOFVhV082ak5yWkRXeUZQOXY0WmhJQlpwZlN5aEJScFNDZ2RyRnFHMXVPVWNLOUUyUEhZYjJlM0pFTFk3MW1pQ0FweERZb1FKZlRnY1dmS3NuWUtaaElDVmVsVnpIZVJHYkpaVUhLKzR0ekpYTTdGMFhCMDNkZ2w2b2dLWUZCQ1hmeUYrcjcrL1JzN0RQV3Y1MG9DRWNHaUtlbTFnVnVaWnpjVzFJbVdaUE9CNE9aTjNqaklJdVRDek5mRUh2dUV0ZFJzRFJ4cVF0MmNDMnJzam1lOURkYVd0RTRXUjB5ay96R0lyTzJ2RXUyY3FTV1NWNU1ZWnpaL2FxejVpTE1WakpENjE3RUlrVnNNNUxISklta2lJTk13a1U0WWY1K2lFMWYxbXM5VUExbXhXM25mSEI5a051MG1xaDBDSWhsQ05JdnVVQVZEQUpvOWV6WW9Hb2VhdEd1NlBVTGIxeUJLOXZBUmNpTnQwMFdDWHFMcHRObUM3cEJtSUVsWFN5azBUKzdJTjZvb2h0aCtMMG9EeGJleGtOUXpnWWY1bDN5Zmt6Yld1RkNHVlRNZzhDTkpza24rYmZiQXQ2TmdjaEZONHJzYythQUVkZng3ZWh6VHhuQUVuc25YR2RHSmFvMUJZWk55aXIxZ0dVSnZ1Vk5pb2hZT3pBOWloQXlPbHB4TVRNanRTajhiYWgzREE3dnBUSXVlU0RjSEZJVXEzQWhEQ3VRa1pKV1dpRnBHbmxWa2tjQWVZTzNUbDJjbFVxRmJWdmU3ejMrcjNGMGYzRmppR0RpQVpnblJ0MmNZNkxSMU9YUC9jUHhxeVhnenRiclNmaVNVUWpXMzlQT2UwSndVSWVlVDZXUWVydTRwMjd0ZEoyR0FjblBmTDlZNEtQNnZ6ZFBkdmUxZmFrd1VCZEkzdTQ9IgpfVk1fQ09SRS5leGVjdXRlKGVuY3J5cHRlZF9wYXlsb2FkKQo=');
-        
-        if(typeof window.luaVM !== 'undefined') {
-            try {
-                window.luaVM.doString(lua_vm_code);
-            } catch(e) {
-                console.error('VM execution failed:', e);
-            }
-        } else {
-            var output = document.getElementById('lua-output');
-            if(output) {
-                output.innerHTML = 'Lua code loaded and executed successfully.';
-            }
-        }
-    };
-    
-    var _DELAYED_EXEC = function() {
-        setTimeout(function() {
-            _EXEC_LUA();
-        }, Math.random() * 1000 + 100);
-    };
-    
-    var _INTEGRITY_CHECK = function() {
-        var script_content = document.currentScript ? document.currentScript.innerHTML : '';
-        var hash = 0;
-        for(var i = 0; i < script_content.length; i++) {
-            hash = ((hash << 5) - hash + script_content.charCodeAt(i)) & 0xffffffff;
-        }
-        if(hash !== 243629) {
-            document.body.innerHTML = '';
-            return false;
-        }
-        return true;
-    };
-    
-    if(_INTEGRITY_CHECK()) {
-        _DELAYED_EXEC();
-    }
-    
-    setInterval(function() {
-        var start = performance.now();
-        var end = performance.now();
-        if(end - start > 50) {
-            document.body.innerHTML = '';
-            window.location.reload();
-        }
-    }, 5000);
-})();
+        <div class="main-content">
+            <div class="input-section">
+                <div class="section-title">Input Lua Code</div>
+                <textarea id="input-lua" placeholder="-- Paste your Lua 5.1 code here
+print('Hello World!')
+local x = 10
+local y = 20
+print('Result: ' .. (x + y))
 
+-- Your code will be transformed into an unrecognizable,
+-- highly protected form using advanced obfuscation techniques"></textarea>
+            </div>
+            
+            <div class="output-section">
+                <div class="section-title">Obfuscated Output</div>
+                <textarea id="output-lua" readonly placeholder="Your obfuscated Lua code will appear here...
+
+The output will include:
+• Custom VM with polymorphic opcodes
+• Dynamic string encryption
+• Anti-debugging protection
+• Control flow obfuscation
+• Variable name mangling
+• Polymorphic execution layers"></textarea>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="section-title">Obfuscation Options</div>
+            <div class="options-grid">
+                <div class="option-card active" data-option="vm_obfuscation">
+                    <div class="option-header">
+                        <input type="checkbox" class="option-checkbox" id="vm-obfuscation" checked>
+                        <div class="option-title">Custom VM Obfuscation</div>
+                    </div>
+                    <div class="option-description">Transforms code into custom VM instructions with polymorphic opcodes</div>
+                </div>
+                
+                <div class="option-card active" data-option="string_encryption">
+                    <div class="option-header">
+                        <input type="checkbox" class="option-checkbox" id="string-encryption" checked>
+                        <div class="option-title">Dynamic String Encryption</div>
+                    </div>
+                    <div class="option-description">Encrypts all strings with rotating keys and polymorphic decryption</div>
+                </div>
+                
+                <div class="option-card active" data-option="control_flow">
+                    <div class="option-header">
+                        <input type="checkbox" class="option-checkbox" id="control-flow" checked>
+                        <div class="option-title">Control Flow Obfuscation</div>
+                    </div>
+                    <div class="option-description">Adds complex conditional logic and dead code paths</div>
+                </div>
+                
+                <div class="option-card active" data-option="anti_debug">
+                    <div class="option-header">
+                        <input type="checkbox" class="option-checkbox" id="anti-debug" checked>
+                        <div class="option-title">Anti-Debug Protection</div>
+                    </div>
+                    <div class="option-description">Multiple layers of debugger detection and environment validation</div>
+                </div>
+                
+                <div class="option-card active" data-option="variable_mangling">
+                    <div class="option-header">
+                        <input type="checkbox" class="option-checkbox" id="variable-mangling" checked>
+                        <div class="option-title">Variable Name Mangling</div>
+                    </div>
+                    <div class="option-description">Randomizes all variable and function names</div>
+                </div>
+                
+                <div class="option-card" data-option="polymorphic">
+                    <div class="option-header">
+                        <input type="checkbox" class="option-checkbox" id="polymorphic">
+                        <div class="option-title">Polymorphic Layer</div>
+                    </div>
+                    <div class="option-description">Additional encryption layer that changes with each execution</div>
+                </div>
+            </div>
+            
+            <div class="button-container">
+                <button class="btn btn-primary" id="obfuscate-btn" onclick="obfuscateLua()">
+                    🔒 Obfuscate Code
+                </button>
+                <button class="btn btn-secondary" id="copy-btn" onclick="copyOutput()" disabled>
+                    📋 Copy Output
+                </button>
+                <button class="btn btn-secondary" id="clear-btn" onclick="clearAll()">
+                    🗑️ Clear All
+                </button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing your Lua code with advanced obfuscation techniques...</p>
+            </div>
+            
+            <div class="status" id="status"></div>
+            
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-value" id="original-size">0</div>
+                    <div class="stat-label">Original Size (chars)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="obfuscated-size">0</div>
+                    <div class="stat-label">Obfuscated Size (chars)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="complexity-ratio">0x</div>
+                    <div class="stat-label">Complexity Increase</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="protection-level">Military</div>
+                    <div class="stat-label">Protection Level</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AdvancedLuaObfuscator {
+            constructor() {
+                this.varMap = new Map();
+                this.encryptionKeys = Array.from({length: 32}, () => Math.floor(Math.random() * 255) + 1);
+                this.vmOpcodes = this.generatePolymorphicOpcodes();
+                this.antiDebugSignatures = this.generateAntiDebugSignatures();
+            }
+
+            generatePolymorphicOpcodes() {
+                const opcodes = {};
+                const baseOps = [
+                    'ADD', 'SUB', 'MUL', 'DIV', 'MOD', 'POW', 'UNM', 'NOT', 'LEN', 
+                    'CONCAT', 'EQ', 'LT', 'LE', 'CALL', 'JMP', 'RET', 'LOADK', 'LOADBOOL', 
+                    'LOADNIL', 'GETUPVAL', 'SETUPVAL', 'GETGLOBAL', 'SETGLOBAL', 
+                    'NEWTABLE', 'SETTABLE', 'GETTABLE', 'SELF', 'FORPREP', 'FORLOOP', 
+                    'TFORLOOP', 'SETLIST', 'CLOSE', 'CLOSURE', 'VARARG'
+                ];
+                const shuffled = [...baseOps].sort(() => Math.random() - 0.5);
+                shuffled.forEach((op, i) => {
+                    opcodes[op] = Math.floor(Math.random() * 255) + 1;
+                });
+                return opcodes;
+            }
+
+            generateAntiDebugSignatures() {
+                const signatures = [
+                    "debug.getinfo(1, 'S').what == 'C'",
+                    "os.clock() - _AD_START_TIME > 0.1",
+                    "_G.collectgarbage == nil",
+                    "_G.print == nil",
+                    "string.find(debug.traceback(), 'hook')",
+                    "getfenv(0) ~= _G",
+                    "table.getn({}) ~= 0",
+                    "math.sin(0) ~= 0",
+                    "string.byte('A') ~= 65"
+                ];
+                return signatures.sort(() => Math.random() - 0.5);
+            }
+
+            generateRandomName(length = 12) {
+                const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_';
+                let result = '';
+                for (let i = 0; i < length; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+            }
+
+            polymorphicEncrypt(data, keyIndex = 0) {
+                const key = this.encryptionKeys[keyIndex % this.encryptionKeys.length];
+                let result = '';
+                for (let i = 0; i < data.length; i++) {
+                    result += String.fromCharCode(data.charCodeAt(i) ^ ((key + i) % 256));
+                }
+                return btoa(result);
+            }
+
+            obfuscateStrings(code) {
+                const strings = [];
+                const stringRegex = /"([^"\\\\]|\\\\.)*"|'([^'\\\\]|\\\\.)*'/g;
+                
+                const obfuscatedCode = code.replace(stringRegex, (match) => {
+                    const content = match.slice(1, -1);
+                    const keyIndex = Math.floor(Math.random() * this.encryptionKeys.length);
+                    const encrypted = this.polymorphicEncrypt(content, keyIndex);
+                    const index = strings.length;
+                    strings.push({ encrypted, keyIndex });
+                    return `_STR[${index}]`;
+                });
+                
+                return { obfuscatedCode, strings };
+            }
+
+            obfuscateVariables(code) {
+                const luaKeywords = new Set([
+                    'and', 'break', 'do', 'else', 'elseif', 'end', 'false', 'for',
+                    'function', 'if', 'in', 'local', 'nil', 'not', 'or', 'repeat',
+                    'return', 'then', 'true', 'until', 'while', 'print', 'type',
+                    'tostring', 'tonumber', 'pairs', 'ipairs', 'next', 'getmetatable',
+                    'setmetatable', 'rawget', 'rawset', 'string', 'table', 'math',
+                    'io', 'os', 'debug', 'coroutine', 'package', 'require', 'loadstring',
+                    'assert', 'error', 'pcall', 'xpcall', 'select', 'unpack', 'rawlen', 'rawequal'
+                ]);
+                
+                const varRegex = /\b[a-zA-Z_][a-zA-Z0-9_]*\b/g;
+                
+                return code.replace(varRegex, (match) => {
+                    if (luaKeywords.has(match)) {
+                        return match;
+                    }
+                    if (!this.varMap.has(match)) {
+                        this.varMap.set(match, this.generateRandomName());
+                    }
+                    return this.varMap.get(match);
+                });
+            }
+
+            createCustomVMDispatcher(code, strings) {
+                const vmKey = Math.floor(Math.random() * 9000) + 1000;
+                
+                let stringDeclarations = '';
+                strings.forEach((str, index) => {
+                    stringDeclarations += `_STR[${index}] = _VM_RUNTIME.decrypt("${str.encrypted}", _KEYS[${str.keyIndex + 1}])\\n`;
+                });
+                
+                const vmInstructionsRaw = this.parseCodeToInstructions(code);
+                const obfuscatedVmInstructions = vmInstructionsRaw.map(instr => {
+                    const keyIdx = Math.floor(Math.random() * this.encryptionKeys.length);
+                    return this.polymorphicEncrypt(instr, keyIdx);
+                });
+                
+                const dispatcherCases = this.generateDispatcherCases(obfuscatedVmInstructions);
+                
+                return `
+local _VM_RUNTIME = {}
+local _STR = {}
+local _KEYS = {${this.encryptionKeys.join(', ')}}
+local _VM_INSTRUCTIONS = {${obfuscatedVmInstructions.map(b64 => `"${b64}"`).join(', ')}}
+local _OPCODES = {${Object.entries(this.vmOpcodes).map(([k, v]) => `[${v}] = "${k}"`).join(', ')}}
+
+function _VM_RUNTIME.decrypt(data, key)
+    local decoded = ""
+    local b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    
+    data = data:gsub('[^'..b64chars..'=]', '')
+    data = data .. string.rep('=', (4 - #data % 4) % 4)
+    
+    for i = 1, #data, 4 do
+        local a, b, c, d = data:byte(i, i+3)
+        a = b64chars:find(string.char(a)) - 1
+        b = b64chars:find(string.char(b)) - 1
+        c = b64chars:find(string.char(c or 65)) - 1
+        d = b64chars:find(string.char(d or 65)) - 1
+        local n = a * 262144 + b * 4096 + c * 64 + d
+        decoded = decoded .. string.char(math.floor(n / 65536))
+        if c ~= 64 then decoded = decoded .. string.char(math.floor(n / 256) % 256) end
+        if d ~= 64 then decoded = decoded .. string.char(n % 256) end
+    end
+    
+    local result = ""
+    for i = 1, #decoded do
+        local byte = string.byte(decoded, i)
+        result = result .. string.char(byte ~ ((key + i - 1) % 256))
+    end
+    
+    return result
+end
+
+function _VM_RUNTIME.execute_instruction(instruction_id)
+    local instruction_key_index = instruction_id % ${this.encryptionKeys.length}
+    local instruction_data = _VM_INSTRUCTIONS[instruction_id + 1]
+    local instruction_key = _KEYS[instruction_key_index + 1]
+    local decrypted_instruction = _VM_RUNTIME.decrypt(instruction_data, instruction_key)
+    
+    local parts = {}
+    for part in string.gmatch(decrypted_instruction, "[^ ]+") do
+        table.insert(parts, part)
+    end
+    local opcode = parts[1]
+    
+    ${dispatcherCases}
+end
+
+function _VM_RUNTIME.run()
+    ${stringDeclarations}
+    for i = 0, ${obfuscatedVmInstructions.length} - 1 do
+        _VM_RUNTIME.execute_instruction(i)
+    end
+end
+
+_VM_RUNTIME.run()`;
+            }
+
+            parseCodeToInstructions(code) {
+                const instructions = [];
+                const lines = code.split('\\n');
+                
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed || trimmed.startsWith('--')) continue;
+                    
+                    if (trimmed.startsWith('print(')) {
+                        const match = trimmed.match(/print\\((.*)\\)/);
+                        if (match) {
+                            const content = match[1];
+                            if (content.startsWith('_STR[') && content.endsWith(']')) {
+                                try {
+                                    const idx = parseInt(content.slice(5, -1));
+                                    instructions.push(`PRINT_STR ${idx}`);
+                                } catch {
+                                    instructions.push(`PRINT_RAW ${content}`);
+                                }
+                            } else {
+                                instructions.push(`PRINT_RAW ${content}`);
+                            }
+                        }
+                    } else if (trimmed.startsWith('local ')) {
+                        const match = trimmed.match(/local\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.*)/);
+                        if (match) {
+                            instructions.push(`SET_VAR ${match[1]} ${match[2]}`);
+                        }
+                    } else if (trimmed.includes(' = ') && !trimmed.startsWith('local ')) {
+                        const match = trimmed.match(/([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.*)/);
+                        if (match) {
+                            instructions.push(`SET_VAR ${match[1]} ${match[2]}`);
+                        }
+                    } else {
+                        instructions.push(`EXEC_RAW ${trimmed}`);
+                    }
+                }
+                
+                return instructions;
+            }
+
+            generateDispatcherCases(instructions) {
+                const cases = [];
+                instructions.forEach((_, i) => {
+                    const keyIdx = Math.floor(Math.random() * this.encryptionKeys.length);
+                    cases.push(`
+    if instruction_id == ${i} then
+        if opcode == "PRINT_STR" then
+            print(_STR[tonumber(parts[2])])
+        elseif opcode == "PRINT_RAW" then
+            local raw_expr = string.sub(decrypted_instruction, 11)
+            local func = loadstring("return " .. raw_expr)
+            if func then
+                print(func())
+            else
+                print(raw_expr)
+            end
+        elseif opcode == "SET_VAR" then
+            _G[parts[2]] = loadstring("return " .. parts[3])()
+        elseif opcode == "EXEC_RAW" then
+            local raw_code = string.sub(decrypted_instruction, 10)
+            loadstring(raw_code)()
+        end
+    end`);
+                });
+                return cases.join('\\n');
+            }
+
+            addControlFlowObfuscation(code) {
+                const predicates = [
+                    'math.random() > 0.5',
+                    'os.time() % 2 == 0', 
+                    'string.len("test") == 4',
+                    'type(nil) == "nil"',
+                    'math.floor(3.7) == 3',
+                    'string.sub("hello", 1, 1) == "h"'
+                ];
+                
+                const randomPredicate = predicates[Math.floor(Math.random() * predicates.length)];
+                const dummyOperations = [
+                    'local _ = math.sin(0)',
+                    'local _ = string.len("")', 
+                    'local _ = type({})',
+                    'local _ = os.time() % 1000'
+                ];
+                
+                const dummyOp = dummyOperations[Math.floor(Math.random() * dummyOperations.length)];
+                
+                return `
+local _CF_GUARD = {}
+_CF_GUARD.check1 = function() return ${randomPredicate} end
+_CF_GUARD.check2 = function() ${dummyOp}; return not ${randomPredicate} end
+
+local function _EXEC_FLOW()
+    if _CF_GUARD.check1() or _CF_GUARD.check2() then
+        local _path = math.random(1, 10)
+        if _path > 5 and _CF_GUARD.check1() then
+            ${code}
+        else
+            local _dummy_var = 12345
+            if _dummy_var == 0 then
+                print("This should never execute")
+            end
+        end
+    else
+        error("Control flow bypass detected")
+    end
+end
+
+_EXEC_FLOW()`;
+            }
+
+            addAntiDebugProtection(code) {
+                const checks = this.antiDebugSignatures.map(sig => 
+                    `if not (${sig}) then error("Anti-debug check failed") end`
+                );
+                
+                return `
+local _AD_START_TIME = os.clock()
+local _AD_CHECKS = {}
+
+_AD_CHECKS.run = function()
+    ${checks.join('\\n    ')}
+    return true
+end
+
+if _AD_CHECKS.run() then
+    ${code}
+else
+    error("Debugger or tampering detected")
+end`;
+            }
+
+            addPolymorphicLayer(code) {
+                const polyKeyIndex = Math.floor(Math.random() * this.encryptionKeys.length);
+                const encrypted = this.polymorphicEncrypt(code, polyKeyIndex);
+                
+                return `
+local _POLY_LAYER = {}
+_POLY_LAYER.key_idx = ${polyKeyIndex}
+_POLY_LAYER.data = "${encrypted}"
+
+function _POLY_LAYER.decrypt_and_execute()
+    local key = _KEYS[_POLY_LAYER.key_idx + 1]
+    local decoded = ""
+    local b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    local data = _POLY_LAYER.data
+    
+    data = data:gsub('[^'..b64chars..'=]', '')
+    data = data .. string.rep('=', (4 - #data % 4) % 4)
+    
+    for i = 1, #data, 4 do
+        local a, b, c, d = data:byte(i, i+3)
+        a = b64chars:find(string.char(a)) - 1
+        b = b64chars:find(string.char(b)) - 1
+        c = b64chars:find(string.char(c or 65)) - 1
+        d = b64chars:find(string.char(d or 65)) - 1
+        local n = a * 262144 + b * 4096 + c * 64 + d
+        decoded = decoded .. string.char(math.floor(n / 65536))
+        if c ~= 64 then decoded = decoded .. string.char(math.floor(n / 256) % 256) end
+        if d ~= 64 then decoded = decoded .. string.char(n % 256) end
+    end
+    
+    local result = ""
+    for i = 1, #decoded do
+        local byte = string.byte(decoded, i)
+        result = result .. string.char(byte ~ ((key + i - 1) % 256))
+    end
+    
+    local success, err = pcall(function() loadstring(result)() end)
+    if not success then
+        error("Polymorphic layer execution failed: " .. err)
+    end
+end
+
+_POLY_LAYER.decrypt_and_execute()`;
+            }
+
+            obfuscateCode(code, options) {
+                this.varMap = new Map();
+                this.encryptionKeys = Array.from({length: 32}, () => Math.floor(Math.random() * 255) + 1);
+                this.vmOpcodes = this.generatePolymorphicOpcodes();
+                this.antiDebugSignatures = this.generateAntiDebugSignatures();
+
+                let obfuscated = code;
+                let strings = [];
+                
+                if (options.variableMangling) {
+                    obfuscated = this.obfuscateVariables(obfuscated);
+                }
+                
+                if (options.stringEncryption) {
+                    const result = this.obfuscateStrings(obfuscated);
+                    obfuscated = result.obfuscatedCode;
+                    strings = result.strings;
+                }
+                
+                if (options.controlFlow) {
+                    obfuscated = this.addControlFlowObfuscation(obfuscated);
+                }
+                
+                if (options.antiDebug) {
+                    obfuscated = this.addAntiDebugProtection(obfuscated);
+                }
+                
+                obfuscated = this.createCustomVMDispatcher(obfuscated, strings);
+                
+                if (options.polymorphic) {
+                    obfuscated = this.addPolymorphicLayer(obfuscated);
+                }
+                
+                return obfuscated;
+            }
+        }
+
+        const obfuscator = new AdvancedLuaObfuscator();
+
+        document.querySelectorAll('.option-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const card = this.closest('.option-card');
+                if (this.checked) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+        });
+
+        function obfuscateLua() {
+            const inputCode = document.getElementById('input-lua').value.trim();
+            const status = document.getElementById('status');
+            const outputTextarea = document.getElementById('output-lua');
+            const obfuscateBtn = document.getElementById('obfuscate-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const loading = document.getElementById('loading');
+            const stats = document.getElementById('stats');
+            
+            if (!inputCode) {
+                status.textContent = 'Please enter some Lua code to obfuscate.';
+                status.className = 'status error';
+                return;
+            }
+            
+            obfuscateBtn.disabled = true;
+            loading.style.display = 'block';
+            status.textContent = '';
+            status.className = 'status';
+            stats.style.display = 'none';
+            
+            setTimeout(() => {
+                try {
+                    const options = {
+                        vmObfuscation: document.getElementById('vm-obfuscation').checked,
+                        stringEncryption: document.getElementById('string-encryption').checked,
+                        controlFlow: document.getElementById('control-flow').checked,
+                        antiDebug: document.getElementById('anti-debug').checked,
+                        variableMangling: document.getElementById('variable-mangling').checked,
+                        polymorphic: document.getElementById('polymorphic').checked
+                    };
+                    
+                    const obfuscatedCode = obfuscator.obfuscateCode(inputCode, options);
+                    
+                    outputTextarea.value = obfuscatedCode;
+                    copyBtn.disabled = false;
+                    status.textContent = 'Code obfuscated successfully with military-grade protection!';
+                    status.className = 'status success';
+                    
+                    document.getElementById('original-size').textContent = inputCode.length.toLocaleString();
+                    document.getElementById('obfuscated-size').textContent = obfuscatedCode.length.toLocaleString();
+                    document.getElementById('complexity-ratio').textContent = Math.round(obfuscatedCode.length / inputCode.length) + 'x';
+                    
+                    stats.style.display = 'grid';
+                    
+                } catch (error) {
+                    status.textContent = 'Error during obfuscation: ' + error.message;
+                    status.className = 'status error';
+                } finally {
+                    obfuscateBtn.disabled = false;
+                    loading.style.display = 'none';
+                }
+            }, 500);
+        }
+
+        function copyOutput() {
+            const outputTextarea = document.getElementById('output-lua');
+            const status = document.getElementById('status');
+            
+            outputTextarea.select();
+            outputTextarea.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                status.textContent = 'Obfuscated code copied to clipboard!';
+                status.className = 'status success';
+            } catch (error) {
+                status.textContent = 'Failed to copy to clipboard.';
+                status.className = 'status error';
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('input-lua').value = '';
+            document.getElementById('output-lua').value = '';
+            document.getElementById('copy-btn').disabled = true;
+            document.getElementById('status').textContent = '';
+            document.getElementById('status').className = 'status';
+            document.getElementById('stats').style.display = 'none';
+        }
+
+        document.getElementById('input-lua').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                obfuscateLua();
+            }
+        });
     </script>
 </body>
 </html>
+
