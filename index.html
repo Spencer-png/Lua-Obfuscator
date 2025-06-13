@@ -20,7 +20,7 @@
         }
 
         .cyber-grid {
-            background-image: 
+            background-image:
                 linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
             background-size: 20px 20px;
@@ -35,7 +35,7 @@
             animation: glitch-skew 2s infinite linear alternate-reverse;
             text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
         }
-        
+
         .glitch::before,
         .glitch::after {
             content: attr(data-text);
@@ -47,13 +47,13 @@
             background: inherit;
             overflow: hidden;
         }
-        
+
         .glitch::before {
             left: 2px;
             text-shadow: -2px 0 #10B981;
             animation: glitch-anim-1 3s infinite linear alternate-reverse;
         }
-        
+
         .glitch::after {
             left: -2px;
             text-shadow: -2px 0 #3B82F6, 2px 2px #EF4444;
@@ -68,7 +68,7 @@
             80% { clip-path: inset(15% 0 70% 0); }
             100% { clip-path: inset(50% 0 35% 0); }
         }
-        
+
         @keyframes glitch-anim-2 {
             0% { clip-path: inset(85% 0 5% 0); }
             20% { clip-path: inset(25% 0 60% 0); }
@@ -77,7 +77,7 @@
             80% { clip-path: inset(60% 0 30% 0); }
             100% { clip-path: inset(30% 0 65% 0); }
         }
-        
+
         @keyframes glitch-skew {
             0% { transform: skew(0deg) scale(1); }
             25% { transform: skew(0.5deg) scale(1.01); }
@@ -90,14 +90,14 @@
             box-shadow: 0 0 25px rgba(16, 185, 129, 0.4), inset 0 0 15px rgba(16, 185, 129, 0.1);
             border-color: #10B981;
         }
-        
+
         .btn-obfuscate {
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             background: linear-gradient(45deg, #10B981, #059669);
             position: relative;
             overflow: hidden;
         }
-        
+
         .btn-obfuscate::before {
             content: '';
             position: absolute;
@@ -108,19 +108,19 @@
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
             transition: left 0.5s;
         }
-        
+
         .btn-obfuscate:hover::before {
             left: 100%;
         }
-        
+
         .btn-obfuscate:hover {
             transform: translateY(-3px) scale(1.05);
-            box-shadow: 
-                0 15px 30px rgba(0, 0, 0, 0.3), 
+            box-shadow:
+                0 15px 30px rgba(0, 0, 0, 0.3),
                 0 0 20px rgba(16, 185, 129, 0.6),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
-        
+
         .btn-obfuscate:active {
             transform: translateY(-1px) scale(1.02);
         }
@@ -149,10 +149,10 @@
         <header class="text-center mb-12">
             <h1 class="glitch mb-4" data-text="LUA 5.1 FORGE">LUA 5.1 FORGE</h1>
             <p class="text-gray-300 text-lg max-w-3xl leading-relaxed">
-                Advanced polymorphic obfuscation engine with multi-layer VM architecture, 
+                Advanced polymorphic obfuscation engine with multi-layer VM architecture,
                 dynamic bytecode transformation, and Lua 5.1 compatibility enforcement.
             </p>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
                 <div class="feature-card p-4 rounded-lg">
                     <h3 class="text-emerald-400 font-bold mb-2">🔄 Polymorphic VM</h3>
@@ -191,7 +191,7 @@ end
 
 print(fibonacci(10))"></textarea>
             </div>
-            
+
             <div class="flex-1">
                 <div class="flex justify-between items-center mb-3">
                     <label for="lua-output" class="text-sm font-medium text-emerald-300">Obfuscated Output</label>
@@ -229,12 +229,12 @@ print(fibonacci(10))"></textarea>
                     </label>
                 </div>
             </div>
-            
+
             <button id="obfuscate-btn" class="btn-obfuscate text-white font-bold py-4 px-12 rounded-xl text-lg shadow-2xl">
                 <span id="btn-text">🔒 FORGE OBFUSCATION</span>
             </button>
         </footer>
-        
+
         <div id="toast" class="fixed bottom-6 right-6 bg-gray-800 text-white py-3 px-6 rounded-lg shadow-2xl border border-emerald-500 opacity-0 transform translate-y-5 transition-all duration-300">
             <div class="flex items-center gap-2">
                 <span id="toast-icon">✓</span>
@@ -252,7 +252,7 @@ print(fibonacci(10))"></textarea>
                     'function', 'if', 'in', 'local', 'nil', 'not', 'or', 'repeat',
                     'return', 'then', 'true', 'until', 'while'
                 ];
-                
+
                 this.lua51Functions = [
                     'assert', 'collectgarbage', 'dofile', 'error', 'getfenv', 'getmetatable',
                     'ipairs', 'load', 'loadfile', 'loadstring', 'next', 'pairs', 'pcall',
@@ -268,11 +268,11 @@ print(fibonacci(10))"></textarea>
                 let stringChar = '';
                 let result = '';
                 let i = 0;
-                
+
                 while (i < code.length) {
                     const char = code[i];
                     const nextChar = code[i + 1];
-                    
+
                     if (!inString && (char === '"' || char === "'")) {
                         inString = true;
                         stringChar = char;
@@ -295,7 +295,7 @@ print(fibonacci(10))"></textarea>
                     }
                     i++;
                 }
-                
+
                 // Normalize whitespace
                 result = result.replace(/\s+/g, ' ').trim();
                 return result;
@@ -307,7 +307,7 @@ print(fibonacci(10))"></textarea>
                 const nums = '0123456789';
                 let result = prefix + chars[Math.floor(Math.random() * chars.length)];
                 const length = Math.floor(Math.random() * 8) + 3;
-                
+
                 for (let i = 1; i < length; i++) {
                     const charset = chars + nums + '_';
                     result += charset[Math.floor(Math.random() * charset.length)];
@@ -330,7 +330,7 @@ print(fibonacci(10))"></textarea>
             // Enhanced VM-based obfuscation with multiple layers
             obfuscate(code, level = 'medium') {
                 const minified = this.minifyLua(code);
-                
+
                 switch (level) {
                     case 'extreme':
                         return this.extremeObfuscation(minified);
@@ -422,16 +422,16 @@ print(fibonacci(10))"></textarea>
                 // Multi-layer encoding
                 let currentCode = processedCode;
                 const keys = [];
-                
+
                 for (let iter = 0; iter < iterations; iter++) {
                     const key = Math.floor(Math.random() * 255) + 1;
                     keys.push(key);
-                    currentCode = this.encodeLayer(currentCode, key, chunkSize);
+                    currentCode = this.encodeLayer(currentCode, key); // Pass to corrected function
                 }
 
                 // Create instruction chunks
                 const chunks = this.createChunks(currentCode, chunkSize);
-                
+
                 // Shuffle chunks for control flow obfuscation
                 const shuffledChunks = this.shuffleChunks(chunks);
 
@@ -451,9 +451,20 @@ print(fibonacci(10))"></textarea>
                 // Final integrity protection
                 return this.addIntegrityProtection(vmCore);
             }
-
-            encodeLayer(code, key, chunkSize) {
-                return code.split('').map(char => char.charCodeAt(0) ^ key);
+            
+            // ### CORRECTED FUNCTION ###
+            // This function now handles both string and array inputs for multi-layer encoding.
+            encodeLayer(data, key) {
+                let sourceData;
+                if (typeof data === 'string') {
+                    // Layer 1: Convert string to an array of character codes
+                    sourceData = Array.from(data).map(char => char.charCodeAt(0));
+                } else {
+                    // Subsequent Layers: Data is already an array of character codes
+                    sourceData = data;
+                }
+                // Apply the XOR key to each character code
+                return sourceData.map(charCode => charCode ^ key);
             }
 
             createChunks(encodedData, chunkSize) {
@@ -480,12 +491,12 @@ print(fibonacci(10))"></textarea>
                 const constantTable = constants.length > 0 ? `{${constants.join(',')}}` : '{}';
                 const numberTable = numbers.length > 0 ? `{${numbers.join(',')}}` : '{}';
                 const keyTable = `{${keys.join(',')}}`;
-                
-                const instructionTable = chunks.map(chunk => 
+
+                const instructionTable = chunks.map(chunk =>
                     `{${chunk.originalIndex},{${chunk.data.join(',')}}}`
                 ).join(',');
 
-                const opaqueCheck = options.useOpaquePredicates ? 
+                const opaqueCheck = options.useOpaquePredicates ?
                     `if not ${this.createOpaquePredicate()} then return end;` : '';
 
                 return `
@@ -496,12 +507,12 @@ print(fibonacci(10))"></textarea>
                         local ${vmVars.instructions} = {${instructionTable}};
                         local ${vmVars.buffer} = {};
                         local ${vmVars.state} = 0;
-                        
+
                         ${opaqueCheck}
-                        
+
                         local function _S(i) return ${vmVars.constants}[i + 1] end;
-                        local function _N(i) return ${vmVars.numbers}[i + 1] end;
-                        
+                        local function _N(i) return tonumber(${vmVars.numbers}[i + 1]) end;
+
                         local function ${vmVars.decoder}(data, keys)
                             local result = {};
                             for i = 1, #data do
@@ -513,15 +524,15 @@ print(fibonacci(10))"></textarea>
                             end;
                             return table.concat(result);
                         end;
-                        
+
                         for i = 1, #${vmVars.instructions} do
-                            local inst = ${vmVars.instructions}[i];
-                            local pos = inst[1] + 1;
-                            local data = {};
-                            for j = 2, #inst do data[j-1] = inst[j] end;
-                            ${vmVars.buffer}[pos] = ${vmVars.decoder}(data, ${vmVars.key});
+                            local inst_data = ${vmVars.instructions}[i];
+                            local pos = inst_data[1] + 1;
+                            local data_payload = {};
+                            for j = 2, #inst_data do data_payload[#data_payload+1] = inst_data[j] end;
+                            ${vmVars.buffer}[pos] = ${vmVars.decoder}(data_payload[1], ${vmVars.key});
                         end;
-                        
+
                         local env = setmetatable({_S = _S, _N = _N}, {__index = _G});
                         local chunk = loadstring(table.concat(${vmVars.buffer}));
                         if chunk then
@@ -543,16 +554,16 @@ print(fibonacci(10))"></textarea>
                     end;
                     if not ${this.generateIdentifier('AD')}() then return end;
                 `;
-                
+
                 return vmCore.replace('local env =', antiDebugChecks + 'local env =');
             }
 
             addPolymorphicWrapper(vmCore, vmVars) {
                 const morphKey = Math.floor(Math.random() * 1000);
-                const morphedCore = vmCore.split('').map((char, i) => 
+                const morphedCore = vmCore.split('').map((char, i) =>
                     char.charCodeAt(0) ^ (morphKey + i % 256)
                 );
-                
+
                 return `
                     (function()
                         local ${this.generateIdentifier('M')} = ${morphKey};
@@ -571,7 +582,7 @@ print(fibonacci(10))"></textarea>
             addIntegrityProtection(vmCore) {
                 const checksum = this.calculateChecksum(vmCore);
                 const compressed = this.compressCode(vmCore);
-                
+
                 return `
                     (function()
                         local function ${this.generateIdentifier('CHK')}(s)
@@ -581,14 +592,14 @@ print(fibonacci(10))"></textarea>
                             end;
                             return sum;
                         end;
-                        
+
                         local ${this.generateIdentifier('CODE')} = "${compressed}";
                         local ${this.generateIdentifier('EXPECTED')} = ${checksum};
-                        
+
                         if ${this.generateIdentifier('CHK')}(${this.generateIdentifier('CODE')}) ~= ${this.generateIdentifier('EXPECTED')} then
                             return;
                         end;
-                        
+
                         return loadstring(${this.generateIdentifier('CODE')})();
                     end)()
                 `;
@@ -612,56 +623,56 @@ print(fibonacci(10))"></textarea>
                 let formatted = code;
                 let indentLevel = 0;
                 const indent = '    ';
-                
+
                 // Basic formatting rules for Lua 5.1
                 const lines = formatted.split('\n');
                 const formattedLines = [];
-                
+
                 for (let line of lines) {
                     line = line.trim();
                     if (!line) continue;
-                    
+
                     // Decrease indent for end, else, elseif, until
                     if (/^(end|else|elseif|until)/.test(line)) {
                         indentLevel = Math.max(0, indentLevel - 1);
                     }
-                    
+
                     formattedLines.push(indent.repeat(indentLevel) + line);
-                    
+
                     // Increase indent after certain keywords
                     if (/\b(function|if|for|while|repeat|do)\b/.test(line) && !/\bend\b/.test(line)) {
                         indentLevel++;
                     }
-                    
+
                     // Special case for else/elseif
                     if (/^(else|elseif)/.test(line)) {
                         indentLevel++;
                     }
                 }
-                
+
                 return formattedLines.join('\n');
             }
 
             // Validate Lua 5.1 syntax
             validateLua51(code) {
                 const issues = [];
-                
+
                 // Check for Lua 5.2+ features that aren't in 5.1
                 if (code.includes('goto ') || code.includes('::')) {
                     issues.push('goto statements are not available in Lua 5.1');
                 }
-                
+
                 if (code.includes('bit32.')) {
                     issues.push('bit32 library is from Lua 5.2+, use bit library instead');
                 }
-                
+
                 // Check for proper function syntax
                 const functionRegex = /function\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*\(/g;
                 let match;
                 while ((match = functionRegex.exec(code)) !== null) {
                     // Valid function definition
                 }
-                
+
                 return issues;
             }
         }
@@ -699,7 +710,7 @@ print(fibonacci(10))"></textarea>
                 this.elements.formatBtn.addEventListener('click', () => this.handleFormat());
                 this.elements.validateBtn.addEventListener('click', () => this.handleValidate());
                 this.elements.analyzeBtn.addEventListener('click', () => this.handleAnalyze());
-                
+
                 // Auto-resize textareas
                 [this.elements.input, this.elements.output].forEach(textarea => {
                     textarea.addEventListener('input', () => this.autoResize(textarea));
@@ -718,7 +729,7 @@ print(fibonacci(10))"></textarea>
 
             async handleObfuscate() {
                 if (this.isProcessing) return;
-                
+
                 const code = this.elements.input.value.trim();
                 if (!code) {
                     this.showToast('⚠️', 'Please enter some Lua code first', 'warning');
@@ -733,23 +744,23 @@ print(fibonacci(10))"></textarea>
                 try {
                     // Simulate processing delay for better UX
                     await new Promise(resolve => setTimeout(resolve, 500));
-                    
+
                     const level = this.getSelectedLevel();
                     const startTime = performance.now();
-                    
+
                     const obfuscatedCode = this.obfuscator.obfuscate(code, level);
-                    
+
                     const endTime = performance.now();
                     const processingTime = Math.round(endTime - startTime);
-                    
+
                     this.elements.output.value = obfuscatedCode;
                     this.updateOutputStats(code, obfuscatedCode, processingTime);
-                    
+
                     this.elements.output.classList.add('animate-pulse');
                     setTimeout(() => this.elements.output.classList.remove('animate-pulse'), 1000);
-                    
+
                     this.showToast('✓', `Obfuscation completed in ${processingTime}ms`, 'success');
-                    
+
                 } catch (error) {
                     console.error('Obfuscation error:', error);
                     this.elements.output.value = `-- Obfuscation Error --\n-- ${error.message}\n-- Please check your Lua syntax and try again.`;
@@ -842,15 +853,15 @@ print(fibonacci(10))"></textarea>
                 const originalSize = original.length;
                 const obfuscatedSize = obfuscated.length;
                 const ratio = ((obfuscatedSize / originalSize) * 100).toFixed(1);
-                
-                this.elements.outputStats.textContent = 
+
+                this.elements.outputStats.textContent =
                     `${obfuscatedSize} chars (${ratio}% of original) • ${processingTime}ms`;
             }
 
             showToast(icon, message, type = 'info') {
                 this.elements.toastIcon.textContent = icon;
                 this.elements.toastMessage.textContent = message;
-                
+
                 // Color coding based on type
                 const colors = {
                     success: 'border-emerald-500 bg-emerald-900/50',
@@ -858,9 +869,9 @@ print(fibonacci(10))"></textarea>
                     warning: 'border-yellow-500 bg-yellow-900/50',
                     info: 'border-blue-500 bg-blue-900/50'
                 };
-                
+
                 this.elements.toast.className = `fixed bottom-6 right-6 text-white py-3 px-6 rounded-lg shadow-2xl ${colors[type]} opacity-100 transform translate-y-0 transition-all duration-300`;
-                
+
                 setTimeout(() => {
                     this.elements.toast.classList.add('opacity-0', 'translate-y-5');
                     this.elements.toast.classList.remove('opacity-100', 'translate-y-0');
@@ -888,27 +899,27 @@ print(fibonacci(10))"></textarea>
                         end;
                         return bit;
                     end)();
-                    
+
                     local unpack = unpack or table.unpack;
                     local loadstring = loadstring or load;
                 `;
-                
+
                 return compatibility + obfuscatedCode;
             }
 
             static optimizeForLua51(code) {
                 // Replace modern Lua features with 5.1 equivalents
                 let optimized = code;
-                
+
                 // Replace table.unpack with unpack
                 optimized = optimized.replace(/table\.unpack/g, 'unpack');
-                
+
                 // Replace load with loadstring for Lua 5.1
                 optimized = optimized.replace(/\bload\(/g, 'loadstring(');
-                
+
                 // Ensure proper bit operations
                 optimized = optimized.replace(/bit32\./g, 'bit.');
-                
+
                 return optimized;
             }
         }
@@ -916,12 +927,12 @@ print(fibonacci(10))"></textarea>
         // Initialize the application
         document.addEventListener('DOMContentLoaded', () => {
             const ui = new ObfuscatorUI();
-            
+
             // Add some example code
             const exampleCode = `-- Lua 5.1 Example: Fibonacci Calculator
 local function fibonacci(n)
-    if n <= 1 then 
-        return n 
+    if n <= 1 then
+        return n
     end
     return fibonacci(n - 1) + fibonacci(n - 2)
 end
@@ -945,27 +956,27 @@ print("Uppercase: " .. string.upper(message))`;
         LuaObfuscator.prototype.createAdvancedVMObfuscation = function(code, options) {
             // Multi-stage obfuscation pipeline
             let stage1 = this.createVMObfuscation(code, options);
-            
+
             if (options.multiLayer) {
                 // Add second VM layer
                 stage1 = this.wrapInSecondVM(stage1);
             }
-            
+
             if (options.controlFlowFlattening) {
                 stage1 = this.flattenControlFlow(stage1);
             }
-            
+
             // Final Lua 5.1 optimization
             stage1 = Lua51Enhancer.optimizeForLua51(stage1);
             stage1 = Lua51Enhancer.addLua51Compatibility(stage1);
-            
+
             return stage1;
         };
 
         LuaObfuscator.prototype.wrapInSecondVM = function(code) {
             const secondVMKey = Math.floor(Math.random() * 255) + 1;
             const encoded = code.split('').map(c => c.charCodeAt(0) ^ secondVMKey);
-            
+
             return `
                 (function()
                     local key = ${secondVMKey};
@@ -983,14 +994,14 @@ print("Uppercase: " .. string.upper(message))`;
             // Basic control flow flattening - more sophisticated implementation would be needed for production
             const stateVar = this.generateIdentifier('STATE');
             const jumpTable = this.generateIdentifier('JUMP');
-            
+
             return `
                 local ${stateVar} = 1;
                 local ${jumpTable} = {
                     [1] = function() ${stateVar} = 2; end,
-                    [2] = function() 
+                    [2] = function()
                         ${code.replace(/return/g, stateVar + ' = 0; return')}
-                        ${stateVar} = 0; 
+                        ${stateVar} = 0;
                     end
                 };
                 while ${stateVar} > 0 do
