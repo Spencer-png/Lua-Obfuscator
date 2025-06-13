@@ -489,7 +489,7 @@ The output will include:
                 
                 let stringDeclarations = '';
                 strings.forEach((str, index) => {
-                    stringDeclarations += `    _STR[${index}] = _VM_RUNTIME.decrypt("${str.encrypted}", _KEYS[${str.keyIndex + 1}])\\n`;
+                    stringDeclarations += `     _STR[${index}] = _VM_RUNTIME.decrypt("${str.encrypted}", _KEYS[${str.keyIndex + 1}])\n`;
                 });
                 
                 const vmInstructionsRaw = this.parseCodeToInstructions(code);
@@ -661,7 +661,7 @@ _VM_RUNTIME.run()`;
         end
     end`);
                 });
-                return cases.join('\\n');
+                return cases.join('\n');
             }
 
             addControlFlowObfuscation(code) {
@@ -708,7 +708,7 @@ _EXEC_FLOW()`;
             }
 
             addAntiDebugProtection(code) {
-                const newline = '\\n';
+                const newline = '\n';
                 const checks = this.antiDebugSignatures.map(sig => 
                     `    if not (${sig}) then error("Anti-debug check failed") end`
                 );
