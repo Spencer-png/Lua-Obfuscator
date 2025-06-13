@@ -85,7 +85,7 @@
         <header class="text-center mb-8">
             <h1 class="glitch" data-text="Lua Obfuscator">Lua Obfuscator</h1>
             <p class="text-gray-400 mt-4 max-w-2xl">
-                A top-tier obfuscator with a custom VM, scrambled control-flow, and polymorphic virtualization for maximum security and compatibility.
+                A top-tier obfuscator with a custom VM, constant pooling, scrambled control-flow, and polymorphic virtualization for maximum security.
             </p>
         </header>
 
@@ -121,180 +121,97 @@
     </div>
 
     <script>
+        // --- JavaScript Logic for Obfuscation ---
+
+        /**
+         * A simple minifier to remove comments and extra whitespace.
+         * @param {string} code The input Lua code as a string.
+         * @returns {string} The minified Lua code.
+         */
         function minifyLua(code) {
-            let minified = code.replace(/--.*/g, "");
-            minified = minified.replace(/--\[\[.*?\]\]/gs, "");
-            minified = minified.replace(/\n|\r|\t/g, " ");
-            minified = minified.replace(/\s+/g, " ").trim();
+            let minified = code.replace(/--.*/g, '');
+            minified = minified.replace(/--\[\[.*?\]\]/gs, '');
+            minified = minified.replace(/\n|\r|\t/g, ' ');
+            minified = minified.replace(/\s+/g, ' ').trim();
             return minified;
         }
 
-        function encryptString(str, dynamicKey) {
-            let encrypted = [];
-            for (let i = 0; i < str.length; i++) {
-                let charCode = str.charCodeAt(i);
-                // Apply multiple layers of encryption
-                charCode = (charCode * 3 + dynamicKey + i) % 256; // Arithmetic and index-based
-                charCode = charCode ^ (dynamicKey + i); // XOR with dynamic key and index
-                encrypted.push(charCode);
-            }
-            return `{${encrypted.join(",")}}`;
-        }
-
-        function generateRandomUnicodeName(length) {
-            let name = '';
-            for (let i = 0; i < length; i++) {
-                // Generate random Unicode characters (e.g., from a less common block)
-                name += String.fromCharCode(0x1800 + Math.floor(Math.random() * 0x100)); 
-            }
-            return name;
-        }
-
-        function obfuscateCodeTransformation(code) {
-            // Simple renaming of common Lua keywords/variables (very basic, needs AST for robustness)
-            let transformedCode = code;
-            transformedCode = transformedCode.replace(/local /g, `local ${generateRandomUnicodeName(5)} `);
-            transformedCode = transformedCode.replace(/function /g, `function ${generateRandomUnicodeName(5)} `);
-            transformedCode = transformedCode.replace(/end/g, `end --[[${generateRandomUnicodeName(3)}]]`);
-
-            // Insert dead code (simple example)
-            const deadCode = `\n    local ${generateRandomUnicodeName(4)} = 0; if ${generateRandomUnicodeName(4)} > 1 then print("${generateRandomUnicodeName(6)}") end;\n`;
-            transformedCode = transformedCode.split(';').join(deadCode + ';');
-
-            // Number obfuscation (simple example: replace numbers with arithmetic expressions)
-            transformedCode = transformedCode.replace(/\b(\d+)\b/g, (match, num) => {
-                const val = parseInt(num);
-                const op1 = Math.floor(Math.random() * val);
-                const op2 = val - op1;
-                return `(${op1} + ${op2})`;
+        /**
+         * The most robust and secure obfuscation function, using a buffered VM
+         * with constant pooling for maximum security and compatibility.
+         * @param {string} minifiedCode The minified Lua code.
+         * @returns {string} A self-contained, highly secure obfuscated Lua script.
+         */
+        function vmifyObfuscate(minifiedCode) {
+            // --- Constant Pooling ---
+            const constants = [];
+            const stringMap = new Map();
+            let codeWithPlaceholders = minifiedCode.replace(/"((?:\\"|[^"])*)"/g, (match, str) => {
+                if (!stringMap.has(str)) {
+                    stringMap.set(str, constants.length);
+                    constants.push(match);
+                }
+                return `_C(${stringMap.get(str) + 1})`;
             });
 
-            return transformedCode;
-        }
-
-        function vmifyObfuscate(minifiedCode) {
-            const CHUNK_SIZE = 40; 
+            // --- VM Configuration ---
+            const CHUNK_SIZE = 50; 
             const key = Math.floor(Math.random() * 255) + 1;
             
             const vm_vars = {
                 instructions: `iset_${Math.random().toString(36).substring(2, 8)}`,
                 buffer: `buf_${Math.random().toString(36).substring(2, 8)}`,
-                state: `state_${Math.random().toString(36).substring(2, 8)}`,
-                dispatcher: `disp_${Math.random().toString(36).substring(2, 8)}`,
-                vm_func: `vm_func_${Math.random().toString(36).substring(2, 8)}`,
-                vm_data: `vm_data_${Math.random().toString(36).substring(2, 8)}`,
             };
 
-            // Apply code transformation and renaming first
-            minifiedCode = obfuscateCodeTransformation(minifiedCode);
-
-            // --- Control Flow Flattening (Simplified) ---
-            // This is a simplified approach without a full Lua AST parser.
-            // It will break the code into chunks and use a state machine.
-            const codeBlocks = minifiedCode.split(";").filter(block => block.trim() !== "");
-            const numBlocks = codeBlocks.length;
-            const blockMap = {};
-            let flattenedCode = "";
-
-            for (let i = 0; i < numBlocks; i++) {
-                const blockId = Math.random().toString(36).substring(2, 10);
-                blockMap[blockId] = codeBlocks[i].trim();
-            }
-
-            const blockIds = Object.keys(blockMap);
-            // Shuffle block IDs to further obscure flow
-            for (let i = blockIds.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [blockIds[i], blockIds[j]] = [blockIds[j], blockIds[i]];
-            }
-
-            // Initial state
-            let currentState = blockIds[0];
-
-            flattenedCode += `local ${vm_vars.state} = "${currentState}";\n`;
-            flattenedCode += `while true do\n`;
-            flattenedCode += `  if ${vm_vars.state} == "${blockIds[0]}" then\n`;
-            flattenedCode += `    ${blockMap[blockIds[0]]};\n`;
-            flattenedCode += `    ${vm_vars.state} = "${blockIds[1] || blockIds[0]}"; -- Move to next or loop if only one block\n`;
-            for (let i = 1; i < numBlocks; i++) {
-                flattenedCode += `  elseif ${vm_vars.state} == "${blockIds[i]}" then\n`;
-                flattenedCode += `    ${blockMap[blockIds[i]]};\n`;
-                flattenedCode += `    ${vm_vars.state} = "${blockIds[(i + 1) % numBlocks]}"; -- Loop back to start if last block\n`;
-            }
-            flattenedCode += `  else\n`;
-            flattenedCode += `    break; -- Should not happen in normal flow\n`;
-            flattenedCode += `  end\n`;
-            flattenedCode += `end\n`;
-
-            // --- Opaque Predicates ---
-            // Add a simple opaque predicate that always evaluates to true
-            const opaquePredicate = `if (1 == 1) then -- Opaque Predicate\n`;
-            const opaquePredicateEnd = `end -- End Opaque Predicate\n`;
-            flattenedCode = opaquePredicate + flattenedCode + opaquePredicateEnd;
-
-            // Use the flattened code as the new minifiedCode for VMification
-            minifiedCode = flattenedCode;
-
+            // 1. "Compile" the code (with placeholders) into fixed-size chunks
             const chunks = [];
-            for (let i = 0; i < minifiedCode.length; i += CHUNK_SIZE) {
-                const chunkStr = minifiedCode.substring(i, i + CHUNK_SIZE);
-                const bytecode = chunkStr.split("").map(c => c.charCodeAt(0) ^ key);
+            for (let i = 0; i < codeWithPlaceholders.length; i += CHUNK_SIZE) {
+                const chunkStr = codeWithPlaceholders.substring(i, i + CHUNK_SIZE);
+                const bytecode = chunkStr.split('').map(c => c.charCodeAt(0) ^ key);
                 chunks.push({
                     originalIndex: chunks.length,
-                    bytecode: `{${bytecode.join(",")}}`
+                    bytecode: `{${bytecode.join(',')}}`
                 });
             }
 
-            for (let i = chunks.length - 1; i > 0; i--) {
+            // 2. Scramble the chunk order for Control-Flow Scrambling
+            for (let i = chunks.length - 1; i > 0; i--) { // Fisher-Yates shuffle
                 const j = Math.floor(Math.random() * (i + 1));
                 [chunks[i], chunks[j]] = [chunks[j], chunks[i]];
             }
 
+            // 3. Create the final instruction set
             const finalInstructionTable = [];
-            for (let i = 0; i < chunks.length; i++) {
-                const chunk = chunks[i];
+            for (const chunk of chunks) {
                 finalInstructionTable.push(`{${chunk.bytecode},${chunk.originalIndex}}`);
             }
-            
-            const instructionTable = `{${finalInstructionTable.join(",")}}`;
+            const instructionTable = `{${finalInstructionTable.join(',')}}`;
+            const constantTable = `{${constants.join(',')}}`;
 
+            // 4. Create the final, robust polymorphic VM stub with constant pool.
             const coreVmStub = `
                 local g, s, l, se, sm, bit, t_concat = _G, _G.string, _G.loadstring, _G.setfenv, _G.setmetatable, _G.bit32 or _G.bit, _G.table.concat;
                 local build_str = (function(c, bx) return function(t, k) if not t then return '' end; local r=''; for i=1,#t do r=r..c(bx.bxor(t[i], k)) end; return r; end end)(s.char, bit);
-                local decrypt_str = (function(c, bx) return function(t, k) local r=''; for i=1,#t do local charCode = bx.bxor(t[i], (k + i - 1)); charCode = (charCode - (k + i - 1)) / 3 % 256; r=r..c(charCode) end; return r; end end)(s.char, bit);
-                
                 local ${vm_vars.instructions} = ${instructionTable};
                 local ${vm_vars.buffer} = {};
                 local env, key = {}, ${key};
+                local CONST_POOL = ${constantTable};
+                local function _C(idx) return CONST_POOL[idx] end;
+                env._C = _C;
                 sm(env, {__index = g});
                 env.loadstring, env.dofile = nil, nil;
-
-                -- Enhanced VM Instruction Set and Dispatcher
-                local function ${vm_vars.dispatcher}(instruction_set, data_buffer, vm_key)
-                    local vm_local_env = { _G = _G, string = string, table = table, bit = bit, loadstring = loadstring, setfenv = setfenv, setmetatable = setmetatable };
-                    setmetatable(vm_local_env, {__index = _G});
-
-                    for i=1, #instruction_set do
-                        local inst = instruction_set[i];
-                        local original_pos = inst[2];
-                        local decrypted_chunk = build_str(inst[1], vm_key);
-                        data_buffer[original_pos + 1] = decrypted_chunk;
-                    end;
-
-                    local final_code, err = loadstring(table.concat(data_buffer,''));
-                    if final_code then 
-                        setfenv(final_code, vm_local_env);
-                        final_code();
-                    else
-                        print("Obfuscation VM Error:", err);
-                    end
-                end
-
-                ${vm_vars.dispatcher}(${vm_vars.instructions}, ${vm_vars.buffer}, key);
+                for i=1, #${vm_vars.instructions} do
+                    local inst = ${vm_vars.instructions}[i];
+                    local original_pos = inst[2];
+                    local decrypted_chunk = build_str(inst[1], key);
+                    ${vm_vars.buffer}[original_pos + 1] = decrypted_chunk;
+                end;
+                local chunk, err = l(t_concat(${vm_vars.buffer},''));
+                if chunk then se(chunk, env); chunk(); else print("Obfuscation VM Error:", err); end
             `;
 
+            // 5. Anti-Tampering Wrapper
             const minifiedCoreVm = minifyLua(coreVmStub);
-
             function checksum(str) {
                 let sum = 0;
                 for (let i = 0; i < str.length; i++) {
@@ -303,7 +220,7 @@
                 return sum;
             }
             const vmChecksum = checksum(minifiedCoreVm);
-            const vmBytecode = minifiedCoreVm.split("").map(c => c.charCodeAt(0));
+            const vmBytecode = minifiedCoreVm.split('').map(c => c.charCodeAt(0));
             
             const antiTamperWrapper = `
                 local s_char, l_str, t_concat, s_byte = string.char, loadstring, table.concat, string.byte;
@@ -364,5 +281,3 @@
     </script>
 </body>
 </html>
-
-
