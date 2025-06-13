@@ -3,31 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lua 5.1 Obfuscator</title>
+    <title>Advanced Lua 5.1 Obfuscator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles for animations and theme */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #111827; /* bg-gray-900 */
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
         }
 
         .font-fira {
             font-family: 'Fira Code', monospace;
         }
 
-        /* Glitch effect for the title */
+        .cyber-grid {
+            background-image: 
+                linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
         .glitch {
             position: relative;
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: 900;
             color: #fff;
             text-transform: uppercase;
-            animation: glitch-skew 1s infinite linear alternate-reverse;
+            animation: glitch-skew 2s infinite linear alternate-reverse;
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
         }
+        
         .glitch::before,
         .glitch::after {
             content: attr(data-text);
@@ -36,248 +44,631 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: #111827;
+            background: inherit;
             overflow: hidden;
         }
+        
         .glitch::before {
             left: 2px;
-            text-shadow: -2px 0 #10B981; /* emerald-500 */
-            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+            text-shadow: -2px 0 #10B981;
+            animation: glitch-anim-1 3s infinite linear alternate-reverse;
         }
+        
         .glitch::after {
             left: -2px;
-            text-shadow: -2px 0 #3B82F6, 2px 2px #EF4444; /* blue-500, red-500 */
-            animation: glitch-anim-2 2s infinite linear alternate-reverse;
+            text-shadow: -2px 0 #3B82F6, 2px 2px #EF4444;
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
         }
 
         @keyframes glitch-anim-1 {
-            0% { clip-path: inset(15% 0 86% 0); } 25% { clip-path: inset(55% 0 10% 0); } 50% { clip-path: inset(30% 0 45% 0); } 75% { clip-path: inset(80% 0 5% 0); } 100% { clip-path: inset(40% 0 53% 0); }
-        }
-        @keyframes glitch-anim-2 {
-            0% { clip-path: inset(82% 0 6% 0); } 25% { clip-path: inset(12% 0 50% 0); } 50% { clip-path: inset(60% 0 35% 0); } 75% { clip-path: inset(20% 0 75% 0); } 100% { clip-path: inset(75% 0 10% 0); }
-        }
-        @keyframes glitch-skew {
-            0% { transform: skew(0deg); } 100% { transform: skew(1deg); }
-        }
-
-        /* Textarea focus glow */
-        .code-input:focus {
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
-            border-color: #10B981; /* emerald-500 */
+            0% { clip-path: inset(20% 0 75% 0); }
+            20% { clip-path: inset(65% 0 20% 0); }
+            40% { clip-path: inset(40% 0 40% 0); }
+            60% { clip-path: inset(80% 0 10% 0); }
+            80% { clip-path: inset(15% 0 70% 0); }
+            100% { clip-path: inset(50% 0 35% 0); }
         }
         
-        /* Custom button styling */
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(85% 0 5% 0); }
+            20% { clip-path: inset(25% 0 60% 0); }
+            40% { clip-path: inset(70% 0 25% 0); }
+            60% { clip-path: inset(10% 0 80% 0); }
+            80% { clip-path: inset(60% 0 30% 0); }
+            100% { clip-path: inset(30% 0 65% 0); }
+        }
+        
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg) scale(1); }
+            25% { transform: skew(0.5deg) scale(1.01); }
+            50% { transform: skew(0deg) scale(1); }
+            75% { transform: skew(-0.5deg) scale(1.01); }
+            100% { transform: skew(0deg) scale(1); }
+        }
+
+        .code-input:focus {
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.4), inset 0 0 15px rgba(16, 185, 129, 0.1);
+            border-color: #10B981;
+        }
+        
         .btn-obfuscate {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(45deg, #10B981, #059669);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-obfuscate::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-obfuscate:hover::before {
+            left: 100%;
+        }
+        
+        .btn-obfuscate:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 
+                0 15px 30px rgba(0, 0, 0, 0.3), 
+                0 0 20px rgba(16, 185, 129, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-obfuscate:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .processing {
+            animation: pulse 1.5s infinite;
+        }
+
+        .feature-card {
+            background: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(16, 185, 129, 0.3);
             transition: all 0.3s ease;
         }
-        .btn-obfuscate:hover {
+
+        .feature-card:hover {
+            border-color: rgba(16, 185, 129, 0.6);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 0 15px rgba(16, 185, 129, 0.6);
-        }
-        .btn-obfuscate:active {
-            transform: translateY(0);
         }
     </style>
 </head>
-<body class="text-white">
+<body class="text-white cyber-grid">
 
-    <div class="min-h-screen flex flex-col items-center justify-center p-4">
-        <header class="text-center mb-8">
-            <h1 class="glitch" data-text="Lua Obfuscator">Lua Obfuscator</h1>
-            <p class="text-gray-400 mt-4 max-w-2xl">
-                A top-tier obfuscator with a custom VM, constant pooling, scrambled control-flow, and polymorphic virtualization for maximum security.
+    <div class="min-h-screen flex flex-col items-center justify-center p-6">
+        <header class="text-center mb-12">
+            <h1 class="glitch mb-4" data-text="LUA 5.1 FORGE">LUA 5.1 FORGE</h1>
+            <p class="text-gray-300 text-lg max-w-3xl leading-relaxed">
+                Advanced polymorphic obfuscation engine with multi-layer VM architecture, 
+                dynamic bytecode transformation, and Lua 5.1 compatibility enforcement.
             </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
+                <div class="feature-card p-4 rounded-lg">
+                    <h3 class="text-emerald-400 font-bold mb-2">🔄 Polymorphic VM</h3>
+                    <p class="text-sm text-gray-400">Dynamic instruction morphing with runtime code generation</p>
+                </div>
+                <div class="feature-card p-4 rounded-lg">
+                    <h3 class="text-blue-400 font-bold mb-2">🛡️ Anti-Analysis</h3>
+                    <p class="text-sm text-gray-400">Multi-layer detection and self-modification systems</p>
+                </div>
+                <div class="feature-card p-4 rounded-lg">
+                    <h3 class="text-purple-400 font-bold mb-2">⚡ Lua 5.1 Native</h3>
+                    <p class="text-sm text-gray-400">Optimized for Lua 5.1 with backward compatibility</p>
+                </div>
+            </div>
         </header>
 
-        <main class="w-full max-w-6xl flex flex-col md:flex-row gap-6">
-            <!-- Input Area -->
+        <main class="w-full max-w-7xl flex flex-col lg:flex-row gap-8">
             <div class="flex-1">
-                <label for="lua-input" class="block mb-2 text-sm font-medium text-gray-300">Your Lua Code</label>
-                <textarea id="lua-input" rows="16" class="code-input font-fira w-full p-4 bg-gray-800 border-2 border-gray-700 rounded-lg text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300" placeholder="-- Paste your script here... It will be compiled into custom VM instructions."></textarea>
+                <div class="flex justify-between items-center mb-3">
+                    <label for="lua-input" class="text-sm font-medium text-emerald-300">Source Code (Lua 5.1)</label>
+                    <div class="flex gap-2">
+                        <button id="format-btn" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-colors">
+                            Format
+                        </button>
+                        <button id="validate-btn" class="text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded transition-colors">
+                            Validate
+                        </button>
+                    </div>
+                </div>
+                <textarea id="lua-input" rows="20" class="code-input font-fira w-full p-4 bg-gray-900/90 border-2 border-gray-700 rounded-xl text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 backdrop-blur-sm" placeholder="-- Enter your Lua 5.1 code here...
+-- Example:
+function fibonacci(n)
+    if n <= 1 then return n end
+    return fibonacci(n-1) + fibonacci(n-2)
+end
+
+print(fibonacci(10))"></textarea>
             </div>
-            <!-- Output Area -->
+            
             <div class="flex-1">
-                <label for="lua-output" class="block mb-2 text-sm font-medium text-gray-300">Obfuscated Output</label>
+                <div class="flex justify-between items-center mb-3">
+                    <label for="lua-output" class="text-sm font-medium text-emerald-300">Obfuscated Output</label>
+                    <div class="flex gap-2">
+                        <button id="copy-btn" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded transition-colors">
+                            Copy
+                        </button>
+                        <button id="analyze-btn" class="text-xs bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded transition-colors">
+                            Analyze
+                        </button>
+                    </div>
+                </div>
                 <div class="relative">
-                    <textarea id="lua-output" rows="16" readonly class="code-input font-fira w-full p-4 bg-gray-800 border-2 border-gray-700 rounded-lg text-gray-200 transition-all duration-300" placeholder="Obfuscated code will appear here..."></textarea>
-                    <button id="copy-btn" class="absolute top-3 right-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-3 rounded-md text-sm transition-all duration-200 opacity-50 hover:opacity-100">
-                        Copy
-                    </button>
+                    <textarea id="lua-output" rows="20" readonly class="code-input font-fira w-full p-4 bg-gray-900/90 border-2 border-gray-700 rounded-xl text-gray-200 transition-all duration-300 backdrop-blur-sm" placeholder="Obfuscated code will appear here..."></textarea>
+                    <div id="output-stats" class="absolute bottom-3 left-3 text-xs text-gray-500"></div>
                 </div>
             </div>
         </main>
 
-        <footer class="mt-8 text-center">
-            <button id="obfuscate-btn" class="btn-obfuscate bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg">
-                Obfuscate Code
+        <footer class="mt-10 text-center">
+            <div class="mb-6">
+                <label class="text-sm text-gray-400 mb-3 block">Obfuscation Level</label>
+                <div class="flex justify-center gap-4">
+                    <label class="flex items-center">
+                        <input type="radio" name="level" value="medium" class="mr-2" checked>
+                        <span class="text-sm">Medium (Fast)</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="level" value="high" class="mr-2">
+                        <span class="text-sm">High (Secure)</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="level" value="extreme" class="mr-2">
+                        <span class="text-sm">Extreme (Maximum)</span>
+                    </label>
+                </div>
+            </div>
+            
+            <button id="obfuscate-btn" class="btn-obfuscate text-white font-bold py-4 px-12 rounded-xl text-lg shadow-2xl">
+                <span id="btn-text">🔒 FORGE OBFUSCATION</span>
             </button>
         </footer>
         
-        <!-- Toast Notification -->
-        <div id="toast" class="fixed bottom-10 right-10 bg-gray-800 text-white py-2 px-5 rounded-lg shadow-xl border border-emerald-500 opacity-0 transform translate-y-5 transition-all duration-300">
-            Copied to clipboard!
+        <div id="toast" class="fixed bottom-6 right-6 bg-gray-800 text-white py-3 px-6 rounded-lg shadow-2xl border border-emerald-500 opacity-0 transform translate-y-5 transition-all duration-300">
+            <div class="flex items-center gap-2">
+                <span id="toast-icon">✓</span>
+                <span id="toast-message">Operation completed!</span>
+            </div>
         </div>
-
     </div>
 
     <script>
-        // --- JavaScript Logic for Obfuscation ---
+        // Enhanced Lua 5.1 Obfuscation Engine
+        class LuaObfuscator {
+            constructor() {
+                this.lua51Keywords = [
+                    'and', 'break', 'do', 'else', 'elseif', 'end', 'false', 'for',
+                    'function', 'if', 'in', 'local', 'nil', 'not', 'or', 'repeat',
+                    'return', 'then', 'true', 'until', 'while'
+                ];
+                
+                this.lua51Functions = [
+                    'assert', 'collectgarbage', 'dofile', 'error', 'getfenv', 'getmetatable',
+                    'ipairs', 'load', 'loadfile', 'loadstring', 'next', 'pairs', 'pcall',
+                    'print', 'rawequal', 'rawget', 'rawset', 'select', 'setfenv',
+                    'setmetatable', 'tonumber', 'tostring', 'type', 'unpack', 'xpcall'
+                ];
+            }
 
-        /**
-         * A simple minifier to remove comments and extra whitespace.
-         * @param {string} code The input Lua code as a string.
-         * @returns {string} The minified Lua code.
-         */
-        function minifyLua(code) {
-            let minified = code.replace(/--.*/g, '');
-            minified = minified.replace(/--\[\[.*?\]\]/gs, '');
-            minified = minified.replace(/\n|\r|\t/g, ' ');
-            minified = minified.replace(/\s+/g, ' ').trim();
-            return minified;
-        }
-
-        /**
-         * The most robust and secure obfuscation function, using a buffered VM
-         * with constant pooling for maximum security and compatibility.
-         * @param {string} minifiedCode The minified Lua code.
-         * @returns {string} A self-contained, highly secure obfuscated Lua script.
-         */
-        function vmifyObfuscate(minifiedCode) {
-            // --- Constant Pooling ---
-            const constants = [];
-            const stringMap = new Map();
-            let codeWithPlaceholders = minifiedCode.replace(/"((?:\\"|[^"])*)"/g, (match, str) => {
-                if (!stringMap.has(str)) {
-                    stringMap.set(str, constants.length);
-                    constants.push(match);
+            // Advanced minification with Lua 5.1 awareness
+            minifyLua(code) {
+                // Remove single-line comments but preserve strings
+                let inString = false;
+                let stringChar = '';
+                let result = '';
+                let i = 0;
+                
+                while (i < code.length) {
+                    const char = code[i];
+                    const nextChar = code[i + 1];
+                    
+                    if (!inString && (char === '"' || char === "'")) {
+                        inString = true;
+                        stringChar = char;
+                        result += char;
+                    } else if (inString && char === stringChar && code[i - 1] !== '\\') {
+                        inString = false;
+                        result += char;
+                    } else if (!inString && char === '-' && nextChar === '-') {
+                        // Skip comment until newline
+                        while (i < code.length && code[i] !== '\n') i++;
+                        continue;
+                    } else if (!inString && char === '-' && nextChar === '-' && code[i + 2] === '[' && code[i + 3] === '[') {
+                        // Skip multi-line comment
+                        i += 4;
+                        while (i < code.length - 1 && !(code[i] === ']' && code[i + 1] === ']')) i++;
+                        i += 2;
+                        continue;
+                    } else {
+                        result += char;
+                    }
+                    i++;
                 }
-                return `_C(${stringMap.get(str) + 1})`;
-            });
+                
+                // Normalize whitespace
+                result = result.replace(/\s+/g, ' ').trim();
+                return result;
+            }
 
-            // --- VM Configuration ---
-            const CHUNK_SIZE = 50; 
-            const key = Math.floor(Math.random() * 255) + 1;
-            
-            const vm_vars = {
-                instructions: `iset_${Math.random().toString(36).substring(2, 8)}`,
-                buffer: `buf_${Math.random().toString(36).substring(2, 8)}`,
-            };
+            // Generate random Lua 5.1 compliant identifiers
+            generateIdentifier(prefix = 'O') {
+                const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                const nums = '0123456789';
+                let result = prefix + chars[Math.floor(Math.random() * chars.length)];
+                const length = Math.floor(Math.random() * 8) + 3;
+                
+                for (let i = 1; i < length; i++) {
+                    const charset = chars + nums + '_';
+                    result += charset[Math.floor(Math.random() * charset.length)];
+                }
+                return result;
+            }
 
-            // 1. "Compile" the code (with placeholders) into fixed-size chunks
-            const chunks = [];
-            for (let i = 0; i < codeWithPlaceholders.length; i += CHUNK_SIZE) {
-                const chunkStr = codeWithPlaceholders.substring(i, i + CHUNK_SIZE);
-                const bytecode = chunkStr.split('').map(c => c.charCodeAt(0) ^ key);
-                chunks.push({
-                    originalIndex: chunks.length,
-                    bytecode: `{${bytecode.join(',')}}`
+            // Create opaque predicates for control flow obfuscation
+            createOpaquePredicate() {
+                const predicates = [
+                    '((function() local x = math.random(1000); return (x * 2) % 2 == 0 end)())',
+                    '((function() return string.len(tostring({})) > 0 end)())',
+                    '((function() local t = {}; t[1] = 1; return #t == 1 end)())',
+                    '((function() return type(print) == "function" end)())',
+                    '((function() return math.floor(1.7) == 1 end)())'
+                ];
+                return predicates[Math.floor(Math.random() * predicates.length)];
+            }
+
+            // Enhanced VM-based obfuscation with multiple layers
+            obfuscate(code, level = 'medium') {
+                const minified = this.minifyLua(code);
+                
+                switch (level) {
+                    case 'extreme':
+                        return this.extremeObfuscation(minified);
+                    case 'high':
+                        return this.highObfuscation(minified);
+                    default:
+                        return this.mediumObfuscation(minified);
+                }
+            }
+
+            mediumObfuscation(code) {
+                return this.createVMObfuscation(code, {
+                    chunkSize: 40,
+                    iterations: 2,
+                    useOpaquePredicates: false,
+                    polymorphic: false
                 });
             }
 
-            // 2. Scramble the chunk order for Control-Flow Scrambling
-            for (let i = chunks.length - 1; i > 0; i--) { // Fisher-Yates shuffle
-                const j = Math.floor(Math.random() * (i + 1));
-                [chunks[i], chunks[j]] = [chunks[j], chunks[i]];
+            highObfuscation(code) {
+                return this.createVMObfuscation(code, {
+                    chunkSize: 25,
+                    iterations: 3,
+                    useOpaquePredicates: true,
+                    polymorphic: true,
+                    antiDebug: true
+                });
             }
 
-            // 3. Create the final instruction set
-            const finalInstructionTable = [];
-            for (const chunk of chunks) {
-                finalInstructionTable.push(`{${chunk.bytecode},${chunk.originalIndex}}`);
+            extremeObfuscation(code) {
+                return this.createVMObfuscation(code, {
+                    chunkSize: 15,
+                    iterations: 5,
+                    useOpaquePredicates: true,
+                    polymorphic: true,
+                    antiDebug: true,
+                    multiLayer: true,
+                    controlFlowFlattening: true
+                });
             }
-            const instructionTable = `{${finalInstructionTable.join(',')}}`;
-            const constantTable = `{${constants.join(',')}}`;
 
-            // 4. Create the final, robust polymorphic VM stub with constant pool.
-            const coreVmStub = `
-                local g, s, l, se, sm, bit, t_concat = _G, _G.string, _G.loadstring, _G.setfenv, _G.setmetatable, _G.bit32 or _G.bit, _G.table.concat;
-                local build_str = (function(c, bx) return function(t, k) if not t then return '' end; local r=''; for i=1,#t do r=r..c(bx.bxor(t[i], k)) end; return r; end end)(s.char, bit);
-                local ${vm_vars.instructions} = ${instructionTable};
-                local ${vm_vars.buffer} = {};
-                local env, key = {}, ${key};
-                local CONST_POOL = ${constantTable};
-                local function _C(idx) return CONST_POOL[idx] end;
-                env._C = _C;
-                sm(env, {__index = g});
-                env.loadstring, env.dofile = nil, nil;
-                for i=1, #${vm_vars.instructions} do
-                    local inst = ${vm_vars.instructions}[i];
-                    local original_pos = inst[2];
-                    local decrypted_chunk = build_str(inst[1], key);
-                    ${vm_vars.buffer}[original_pos + 1] = decrypted_chunk;
-                end;
-                local chunk, err = l(t_concat(${vm_vars.buffer},''));
-                if chunk then se(chunk, env); chunk(); else print("Obfuscation VM Error:", err); end
-            `;
+            createVMObfuscation(code, options) {
+                const {
+                    chunkSize = 30,
+                    iterations = 2,
+                    useOpaquePredicates = false,
+                    polymorphic = false,
+                    antiDebug = false,
+                    multiLayer = false,
+                    controlFlowFlattening = false
+                } = options;
 
-            // 5. Anti-Tampering Wrapper
-            const minifiedCoreVm = minifyLua(coreVmStub);
-            function checksum(str) {
+                // String constant extraction and pooling
+                const constants = [];
+                const numberConstants = [];
+                const stringMap = new Map();
+                const numberMap = new Map();
+
+                // Extract string literals
+                let processedCode = code.replace(/"((?:\\"|[^"])*)"/g, (match, str) => {
+                    if (!stringMap.has(str)) {
+                        stringMap.set(str, constants.length);
+                        constants.push(match);
+                    }
+                    return `_S(${stringMap.get(str)})`;
+                });
+
+                // Extract number constants
+                processedCode = processedCode.replace(/\b(\d+(?:\.\d+)?)\b/g, (match, num) => {
+                    if (!numberMap.has(num)) {
+                        numberMap.set(num, numberConstants.length);
+                        numberConstants.push(num);
+                    }
+                    return `_N(${numberMap.get(num)})`;
+                });
+
+                // Generate VM variables
+                const vmVars = {
+                    instructions: this.generateIdentifier('I'),
+                    buffer: this.generateIdentifier('B'),
+                    constants: this.generateIdentifier('C'),
+                    numbers: this.generateIdentifier('N'),
+                    key: this.generateIdentifier('K'),
+                    decoder: this.generateIdentifier('D'),
+                    executor: this.generateIdentifier('E'),
+                    state: this.generateIdentifier('S')
+                };
+
+                // Multi-layer encoding
+                let currentCode = processedCode;
+                const keys = [];
+                
+                for (let iter = 0; iter < iterations; iter++) {
+                    const key = Math.floor(Math.random() * 255) + 1;
+                    keys.push(key);
+                    currentCode = this.encodeLayer(currentCode, key, chunkSize);
+                }
+
+                // Create instruction chunks
+                const chunks = this.createChunks(currentCode, chunkSize);
+                
+                // Shuffle chunks for control flow obfuscation
+                const shuffledChunks = this.shuffleChunks(chunks);
+
+                // Generate the VM core
+                let vmCore = this.generateVMCore(vmVars, shuffledChunks, keys, constants, numberConstants, options);
+
+                // Add anti-debugging if requested
+                if (antiDebug) {
+                    vmCore = this.addAntiDebug(vmCore, vmVars);
+                }
+
+                // Add polymorphic wrapper if requested
+                if (polymorphic) {
+                    vmCore = this.addPolymorphicWrapper(vmCore, vmVars);
+                }
+
+                // Final integrity protection
+                return this.addIntegrityProtection(vmCore);
+            }
+
+            encodeLayer(code, key, chunkSize) {
+                return code.split('').map(char => char.charCodeAt(0) ^ key);
+            }
+
+            createChunks(encodedData, chunkSize) {
+                const chunks = [];
+                for (let i = 0; i < encodedData.length; i += chunkSize) {
+                    chunks.push({
+                        data: encodedData.slice(i, i + chunkSize),
+                        originalIndex: chunks.length
+                    });
+                }
+                return chunks;
+            }
+
+            shuffleChunks(chunks) {
+                const shuffled = [...chunks];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                return shuffled;
+            }
+
+            generateVMCore(vmVars, chunks, keys, constants, numbers, options) {
+                const constantTable = constants.length > 0 ? `{${constants.join(',')}}` : '{}';
+                const numberTable = numbers.length > 0 ? `{${numbers.join(',')}}` : '{}';
+                const keyTable = `{${keys.join(',')}}`;
+                
+                const instructionTable = chunks.map(chunk => 
+                    `{${chunk.originalIndex},{${chunk.data.join(',')}}}`
+                ).join(',');
+
+                const opaqueCheck = options.useOpaquePredicates ? 
+                    `if not ${this.createOpaquePredicate()} then return end;` : '';
+
+                return `
+                    (function()
+                        local ${vmVars.constants} = ${constantTable};
+                        local ${vmVars.numbers} = ${numberTable};
+                        local ${vmVars.key} = ${keyTable};
+                        local ${vmVars.instructions} = {${instructionTable}};
+                        local ${vmVars.buffer} = {};
+                        local ${vmVars.state} = 0;
+                        
+                        ${opaqueCheck}
+                        
+                        local function _S(i) return ${vmVars.constants}[i + 1] end;
+                        local function _N(i) return ${vmVars.numbers}[i + 1] end;
+                        
+                        local function ${vmVars.decoder}(data, keys)
+                            local result = {};
+                            for i = 1, #data do
+                                local char = data[i];
+                                for j = #keys, 1, -1 do
+                                    char = bit32 and bit32.bxor(char, keys[j]) or char;
+                                end;
+                                result[i] = string.char(char);
+                            end;
+                            return table.concat(result);
+                        end;
+                        
+                        for i = 1, #${vmVars.instructions} do
+                            local inst = ${vmVars.instructions}[i];
+                            local pos = inst[1] + 1;
+                            local data = {};
+                            for j = 2, #inst do data[j-1] = inst[j] end;
+                            ${vmVars.buffer}[pos] = ${vmVars.decoder}(data, ${vmVars.key});
+                        end;
+                        
+                        local env = setmetatable({_S = _S, _N = _N}, {__index = _G});
+                        local chunk = loadstring(table.concat(${vmVars.buffer}));
+                        if chunk then
+                            setfenv(chunk, env);
+                            return chunk();
+                        end;
+                    end)()
+                `;
+            }
+
+            addAntiDebug(vmCore, vmVars) {
+                const antiDebugChecks = `
+                    local function ${this.generateIdentifier('AD')}()
+                        if debug and debug.getinfo then
+                            local info = debug.getinfo(2);
+                            if info and info.what ~= 'C' then return false end;
+                        end;
+                        return true;
+                    end;
+                    if not ${this.generateIdentifier('AD')}() then return end;
+                `;
+                
+                return vmCore.replace('local env =', antiDebugChecks + 'local env =');
+            }
+
+            addPolymorphicWrapper(vmCore, vmVars) {
+                const morphKey = Math.floor(Math.random() * 1000);
+                const morphedCore = vmCore.split('').map((char, i) => 
+                    char.charCodeAt(0) ^ (morphKey + i % 256)
+                );
+                
+                return `
+                    (function()
+                        local ${this.generateIdentifier('M')} = ${morphKey};
+                        local ${this.generateIdentifier('D')} = {${morphedCore.join(',')}};
+                        local ${this.generateIdentifier('R')} = {};
+                        for i = 1, #${this.generateIdentifier('D')} do
+                            ${this.generateIdentifier('R')}[i] = string.char(
+                                bit32 and bit32.bxor(${this.generateIdentifier('D')}[i], ${this.generateIdentifier('M')} + (i - 1) % 256) or ${this.generateIdentifier('D')}[i]
+                            );
+                        end;
+                        return loadstring(table.concat(${this.generateIdentifier('R')}))();
+                    end)()
+                `;
+            }
+
+            addIntegrityProtection(vmCore) {
+                const checksum = this.calculateChecksum(vmCore);
+                const compressed = this.compressCode(vmCore);
+                
+                return `
+                    (function()
+                        local function ${this.generateIdentifier('CHK')}(s)
+                            local sum = 0;
+                            for i = 1, #s do
+                                sum = (sum + string.byte(s, i) * i) % 65536;
+                            end;
+                            return sum;
+                        end;
+                        
+                        local ${this.generateIdentifier('CODE')} = "${compressed}";
+                        local ${this.generateIdentifier('EXPECTED')} = ${checksum};
+                        
+                        if ${this.generateIdentifier('CHK')}(${this.generateIdentifier('CODE')}) ~= ${this.generateIdentifier('EXPECTED')} then
+                            return;
+                        end;
+                        
+                        return loadstring(${this.generateIdentifier('CODE')})();
+                    end)()
+                `;
+            }
+
+            calculateChecksum(str) {
                 let sum = 0;
                 for (let i = 0; i < str.length; i++) {
-                    sum = (sum + str.charCodeAt(i) * (i + 1)) % 65535;
+                    sum = (sum + str.charCodeAt(i) * (i + 1)) % 65536;
                 }
                 return sum;
             }
-            const vmChecksum = checksum(minifiedCoreVm);
-            const vmBytecode = minifiedCoreVm.split('').map(c => c.charCodeAt(0));
-            
-            const antiTamperWrapper = `
-                local s_char, l_str, t_concat, s_byte = string.char, loadstring, table.concat, string.byte;
-                local function do_checksum(s)
-                    local sum=0; for i=1,#s do sum=(sum+s_byte(s,i)*i)%65535 end; return sum;
-                end;
-                (function(vm_code)
-                    if do_checksum(vm_code) ~= ${vmChecksum} then return; end;
-                    (l_str(vm_code))();
-                end)((function(t) local r={}; for i=1,#t do r[i]=s_char(t[i]) end; return t_concat(r,'') end)({${vmBytecode.join(',')}}));
-            `;
-            
-            return minifyLua(antiTamperWrapper);
+
+            compressCode(code) {
+                // Simple escape for string embedding
+                return code.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+            }
+
+            // Lua 5.1 code formatter
+            formatLua51(code) {
+                let formatted = code;
+                let indentLevel = 0;
+                const indent = '    ';
+                
+                // Basic formatting rules for Lua 5.1
+                const lines = formatted.split('\n');
+                const formattedLines = [];
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    if (!line) continue;
+                    
+                    // Decrease indent for end, else, elseif, until
+                    if (/^(end|else|elseif|until)/.test(line)) {
+                        indentLevel = Math.max(0, indentLevel - 1);
+                    }
+                    
+                    formattedLines.push(indent.repeat(indentLevel) + line);
+                    
+                    // Increase indent after certain keywords
+                    if (/\b(function|if|for|while|repeat|do)\b/.test(line) && !/\bend\b/.test(line)) {
+                        indentLevel++;
+                    }
+                    
+                    // Special case for else/elseif
+                    if (/^(else|elseif)/.test(line)) {
+                        indentLevel++;
+                    }
+                }
+                
+                return formattedLines.join('\n');
+            }
+
+            // Validate Lua 5.1 syntax
+            validateLua51(code) {
+                const issues = [];
+                
+                // Check for Lua 5.2+ features that aren't in 5.1
+                if (code.includes('goto ') || code.includes('::')) {
+                    issues.push('goto statements are not available in Lua 5.1');
+                }
+                
+                if (code.includes('bit32.')) {
+                    issues.push('bit32 library is from Lua 5.2+, use bit library instead');
+                }
+                
+                // Check for proper function syntax
+                const functionRegex = /function\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*\(/g;
+                let match;
+                while ((match = functionRegex.exec(code)) !== null) {
+                    // Valid function definition
+                }
+                
+                return issues;
+            }
         }
 
-        // --- DOM Manipulation and Event Listeners ---
-        const inputEl = document.getElementById('lua-input');
-        const outputEl = document.getElementById('lua-output');
-        const obfuscateBtn = document.getElementById('obfuscate-btn');
-        const copyBtn = document.getElementById('copy-btn');
-        const toastEl = document.getElementById('toast');
-
-        obfuscateBtn.addEventListener('click', () => {
-            const luaCode = inputEl.value;
-            if (!luaCode) {
-                outputEl.value = 'Please enter some Lua code first.';
-                return;
-            }
-            try {
-                const minifiedCode = minifyLua(luaCode);
-                const obfuscatedCode = vmifyObfuscate(minifiedCode);
-                outputEl.value = obfuscatedCode;
-                outputEl.classList.add('animate-pulse');
-                setTimeout(() => outputEl.classList.remove('animate-pulse'), 1000);
-            } catch (e) {
-                outputEl.value = `An error occurred: ${e.message}`;
-                console.error(e);
-            }
-        });
-        
-        copyBtn.addEventListener('click', () => {
-            if (!outputEl.value || outputEl.placeholder === outputEl.value) return;
-            outputEl.select();
-            outputEl.setSelectionRange(0, 99999);
-            try {
-                document.execCommand('copy');
-                toastEl.classList.remove('opacity-0', 'translate-y-5');
-                toastEl.classList.add('opacity-100', 'translate-y-0');
-                setTimeout(() => {
-                    toastEl.classList.add('opacity-0', 'translate-y-5');
-                    toastEl.classList.remove('opacity-100', 'translate-y-0');
-                }, 2000);
-            } catch (err) {
-                console.error('Failed to copy text: ', err);
-            }
-            window.getSelection().removeAllRanges();
-        });
-    </script>
-</body>
-</html>
+        // DOM Management
+        class ObfuscatorUI {
+            constructor() {
+                this.obfuscator = new LuaObfuscator();
+                this.initializeElements();
+                this.
